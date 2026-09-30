@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FTBiome" format=3]
+
+[ext_resource type="Script" path="res://scripts/biome.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Subway Car"
+cover_name = "Seat Row"
+cover_color = Color(0.22, 0.44, 0.94, 1)
