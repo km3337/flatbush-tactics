@@ -18,6 +18,7 @@ var counter_tween: Tween
 var hits_taken := 0
 var blocked := 0
 var bullet_nodes: Array[Label] = []
+var bullet_tweens := {}  # Label -> drop Tween in progress
 var reload_tween: Tween
 var reaction_timer: SceneTreeTimer
 var low_health := false
@@ -38,11 +39,18 @@ func setup_ammo(maximum: int) -> void:
     for child in ammo_row.get_children(): child.queue_free()
     bullet_nodes.clear()
     for i in maximum:
+        # Each round sits in a fixed slot so the row never re-lays out while a
+        # spent round drops; the round animates freely inside its slot.
+        var slot := Control.new()
+        slot.custom_minimum_size = Vector2(24, 48)
+        slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
         var bullet := Label.new()
         bullet.text = "▮"
         bullet.add_theme_font_size_override("font_size", 34)
         bullet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-        ammo_row.add_child(bullet)
+        bullet.size = slot.custom_minimum_size
+        slot.add_child(bullet)
+        ammo_row.add_child(slot)
         bullet_nodes.append(bullet)
 
 func update_ammo(current: int, maximum: int) -> void:
@@ -51,20 +59,24 @@ func update_ammo(current: int, maximum: int) -> void:
     for i in bullet_nodes.size():
         var bullet := bullet_nodes[i]
         if i < current:
+            if bullet_tweens.has(bullet):
+                bullet_tweens[bullet].kill()
+                bullet_tweens.erase(bullet)
             bullet.visible = true
             bullet.modulate.a = 1.0
             bullet.position = Vector2.ZERO
-        elif bullet.visible:
+        elif bullet.visible and not bullet_tweens.has(bullet):
             _drop_bullet(bullet)
 
 func _drop_bullet(bullet: Label) -> void:
-    var start := bullet.position
     var tween := create_tween()
-    tween.tween_property(bullet, "position", start + Vector2(7, -2), 0.035)
-    tween.tween_property(bullet, "position", start + Vector2(-6, 2), 0.035)
-    tween.tween_property(bullet, "position", start + Vector2(0, 72), 0.16).set_trans(Tween.TRANS_QUAD)
+    bullet_tweens[bullet] = tween
+    tween.tween_property(bullet, "position", Vector2(7, -2), 0.035)
+    tween.tween_property(bullet, "position", Vector2(-6, 2), 0.035)
+    tween.tween_property(bullet, "position", Vector2(0, 72), 0.16).set_trans(Tween.TRANS_QUAD)
     tween.parallel().tween_property(bullet, "modulate:a", 0.0, 0.14)
     tween.tween_callback(func(): bullet.visible = false)
+    tween.finished.connect(func(): bullet_tweens.erase(bullet))
 
 func show_reload() -> void:
     reload_label.visible = true
