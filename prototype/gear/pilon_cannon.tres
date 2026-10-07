@@ -1,0 +1,16 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/pilon_cannon.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pilon_cannon"
+display_name = "Pilon Cannon"
+description = "Shots that hit have a small chance to explode, damaging nearby enemies."
+rarity = 1
+sources = 0
+abbreviation = "PC"
+color = Color(0.2, 0.45, 0.6, 1)
+chance = 0.15
+radius = 80.0
+splash_damage = 1

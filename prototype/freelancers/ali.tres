@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="FTFreelancer" format=3]
+
+[ext_resource type="Script" path="res://scripts/freelancer.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ammo_mod.gd" id="2"]
+[ext_resource type="Resource" path="res://ammo/plain.tres" id="3"]
+[ext_resource type="Resource" path="res://ammo/freeze.tres" id="4"]
+[ext_resource type="Resource" path="res://gear/pilon_cannon.tres" id="5"]
+[ext_resource type="Texture2D" path="res://assets/freelancers/ali_portrait.png" id="6"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Ali"
+weapon_name = "Vakabon System"
+bio = "Fires straight through their fingers: no gun to drop, nothing to swap."
+portrait = ExtResource("6")
+portrait_position = Vector2(0, 0)
+max_health = 5
+magazine_size = 5
+reload_seconds = 0.65
+arsenal_capacity = 20
+starting_money = 20
+starting_gear = ExtResource("5")
+starting_arsenal = Array[ExtResource("2")]([ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("4")])

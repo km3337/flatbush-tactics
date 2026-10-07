@@ -1,0 +1,12 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/ammo/toxic.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"toxic"
+display_name = "Toxic"
+description = "Adds a toxic stack. Your next shot on the target deals +1 damage per stack."
+color = Color(0.45, 0.9, 0.25, 1)
+abbreviation = "TX"
+stacks = 1

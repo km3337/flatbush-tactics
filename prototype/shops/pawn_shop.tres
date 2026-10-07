@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FTShop" format=3]
+
+[ext_resource type="Script" path="res://scripts/shops/shop.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pawn_shop"
+display_name = "Pawn Shop"
+greeting = "Behind the bulletproof glass, the owner doesn't look up. \"Everything works. Mostly.\""
+sells = 0
+stock_size = 3

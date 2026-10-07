@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="FTEvent" format=3]
+
+[ext_resource type="Script" path="res://scripts/events/event_choice.gd" id="1_hd07s"]
+[ext_resource type="Script" path="res://scripts/events/event_outcome.gd" id="2_2odxr"]
+[ext_resource type="Script" path="res://scripts/events/event_effect.gd" id="3_wixdr"]
+[ext_resource type="Script" path="res://scripts/events/effects/money_effect.gd" id="4_f0sw3"]
+[ext_resource type="Script" path="res://scripts/events/effects/health_effect.gd" id="5_tdq2d"]
+[ext_resource type="Script" path="res://scripts/events/event.gd" id="6_hwlj6"]
+
+[sub_resource type="Resource" id="Resource_nyu23"]
+script = ExtResource("4_f0sw3")
+amount = Vector2i(-1, -1)
+
+[sub_resource type="Resource" id="Resource_7dnfj"]
+script = ExtResource("5_tdq2d")
+amount = Vector2i(1, 1)
+
+[sub_resource type="Resource" id="Resource_806uo"]
+script = ExtResource("2_2odxr")
+text = "Warm, sugary, perfect."
+effects = Array[ExtResource("3_wixdr")]([SubResource("Resource_nyu23"), SubResource("Resource_7dnfj")])
+
+[sub_resource type="Resource" id="Resource_tgw4k"]
+script = ExtResource("1_hd07s")
+label = "Buy one ($1)"
+requires_money = 1
+outcomes = Array[ExtResource("2_2odxr")]([SubResource("Resource_806uo")])
+
+[sub_resource type="Resource" id="Resource_bnlm5"]
+script = ExtResource("4_f0sw3")
+amount = Vector2i(-6, -6)
+
+[sub_resource type="Resource" id="Resource_ak610"]
+script = ExtResource("5_tdq2d")
+amount = Vector2i(3, 3)
+
+[sub_resource type="Resource" id="Resource_sw3po"]
+script = ExtResource("2_2odxr")
+weight = 4.0
+text = "You eat way too many. Worth it."
+effects = Array[ExtResource("3_wixdr")]([SubResource("Resource_bnlm5"), SubResource("Resource_ak610")])
+
+[sub_resource type="Resource" id="Resource_2sqj6"]
+script = ExtResource("4_f0sw3")
+amount = Vector2i(-6, -6)
+
+[sub_resource type="Resource" id="Resource_7eq3h"]
+script = ExtResource("5_tdq2d")
+amount = Vector2i(1, 1)
+
+[sub_resource type="Resource" id="Resource_mqaqn"]
+script = ExtResource("2_2odxr")
+text = "Halfway through, you realize some of these are from yesterday."
+effects = Array[ExtResource("3_wixdr")]([SubResource("Resource_2sqj6"), SubResource("Resource_7eq3h")])
+
+[sub_resource type="Resource" id="Resource_bvpdd"]
+script = ExtResource("1_hd07s")
+label = "Buy the whole bag ($6)"
+requires_money = 6
+outcomes = Array[ExtResource("2_2odxr")]([SubResource("Resource_sw3po"), SubResource("Resource_mqaqn")])
+
+[sub_resource type="Resource" id="Resource_qf52x"]
+script = ExtResource("2_2odxr")
+text = "You keep walking. You think about them for three stops."
+
+[sub_resource type="Resource" id="Resource_hcug6"]
+script = ExtResource("1_hd07s")
+label = "Keep walking"
+outcomes = Array[ExtResource("2_2odxr")]([SubResource("Resource_qf52x")])
+
+[resource]
+script = ExtResource("6_hwlj6")
+id = &"churro_lady"
+title = "Churro Lady"
+text = "At the top of the stairs, a woman with a shopping cart full of churros calls out: \"Churros! One dollar, one dollar!\"
+
+They smell incredible. Her cart is suspiciously full for this late."
+choices = Array[ExtResource("1_hd07s")]([SubResource("Resource_tgw4k"), SubResource("Resource_bvpdd"), SubResource("Resource_hcug6")])

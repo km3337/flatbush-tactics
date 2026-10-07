@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FTEventPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/events/event_pool.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/events/event.gd" id="1_pcamd"]
+[ext_resource type="Resource" path="res://events/traveling_poet.tres" id="2_gqr0k"]
+[ext_resource type="Resource" path="res://events/subway_acrobat.tres" id="3_w6trg"]
+[ext_resource type="Resource" path="res://events/lost_metrocard.tres" id="4_hb8wr"]
+[ext_resource type="Resource" path="res://events/delayed_train.tres" id="5_iv8i8"]
+[ext_resource type="Resource" path="res://events/churro_lady.tres" id="6_xpouh"]
+
+[resource]
+script = ExtResource("1")
+events = Array[ExtResource("1_pcamd")]([ExtResource("2_gqr0k"), ExtResource("3_w6trg"), ExtResource("4_hb8wr"), ExtResource("5_iv8i8"), ExtResource("6_xpouh")])

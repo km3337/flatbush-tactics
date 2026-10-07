@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="FTEnemyType" format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1_nfp0v"]
+
+[resource]
+script = ExtResource("1_nfp0v")
+display_name = "Heavy"
+max_health = 4
+attack_interval = Vector2(3, 5.5)
+base_color = Color(0.55, 0.08, 0.14, 1)

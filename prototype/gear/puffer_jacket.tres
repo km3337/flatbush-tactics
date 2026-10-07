@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FTStatGear" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/stat_gear.gd" id="1_gpio1"]
+
+[resource]
+script = ExtResource("1_gpio1")
+stat = &"max_health"
+add = 1.0
+id = &"puffer_jacket"
+display_name = "Puffer Jacket"
+description = "+1 max HP."
+abbreviation = "PJ"
+color = Color(0.2, 0.3, 0.55, 1)

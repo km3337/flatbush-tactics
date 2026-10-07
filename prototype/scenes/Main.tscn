@@ -6,6 +6,21 @@
 [ext_resource type="Script" uid="uid://r2reev1ve2o5" path="res://scripts/hud.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/cover.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/encounter_director.gd" id="7"]
+[ext_resource type="Resource" path="res://encounters/test_street.tres" id="8"]
+[ext_resource type="Shader" path="res://shaders/cover_blur.gdshader" id="9"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_coverblur"]
+shader = ExtResource("9")
+shader_parameter/radius_px = 3.0
+shader_parameter/strength = 0.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gearinfo"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+bg_color = Color(0.05, 0.05, 0.08, 0.88)
 
 [node name="Main" type="Node" unique_id=511627900]
 script = ExtResource("1")
@@ -18,28 +33,8 @@ color = Color(0.08, 0.09, 0.11, 1)
 
 [node name="Enemies" type="Control" parent="."]
 mouse_filter = 2
-
-[node name="PrototypeLabel" type="Label" parent="." unique_id=1410633396]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -340.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 44.0
-theme_override_font_sizes/font_size = 16
-text = "FLATBUSH TACTICS — PROTOTYPE"
-horizontal_alignment = 2
-
-[node name="BiomeLabel" type="Label" parent="."]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -340.0
-offset_top = 44.0
-offset_right = -20.0
-offset_bottom = 68.0
-theme_override_font_sizes/font_size = 14
-text = "BIOME: STREET"
-horizontal_alignment = 2
+script = ExtResource("7")
+encounter = ExtResource("8")
 
 [node name="Weapon" type="Node" parent="." unique_id=1316925723]
 script = ExtResource("2")
@@ -53,11 +48,21 @@ script = ExtResource("3")
 [node name="Cover" type="CanvasLayer" parent="."]
 script = ExtResource("5")
 
+[node name="Blur" type="ColorRect" parent="Cover"]
+visible = false
+material = SubResource("ShaderMaterial_coverblur")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="Shield" type="ColorRect" parent="Cover"]
 visible = false
-offset_top = 154.0
-offset_right = 720.0
-offset_bottom = 1280.0
+offset_top = 77.0
+offset_right = 360.0
+offset_bottom = 640.0
 mouse_filter = 2
 color = Color(0.16, 0.36, 0.86, 1)
 
@@ -68,7 +73,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 modulate = Color(1, 1, 1, 0.55)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 18
 text = "PARKED CAR"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -77,11 +82,33 @@ vertical_alignment = 1
 layer = 2
 script = ExtResource("4")
 
+[node name="PrototypeLabel" type="Label" parent="HUD" unique_id=1410633396]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 10
+text = "FLATBUSH TACTICS — PROTOTYPE"
+horizontal_alignment = 2
+
+[node name="BiomeLabel" type="Label" parent="HUD"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 24.0
+offset_right = -10.0
+offset_bottom = 37.0
+theme_override_font_sizes/font_size = 9
+text = "BIOME: STREET"
+horizontal_alignment = 2
+
 [node name="Portrait" type="ColorRect" parent="HUD"]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 130.0
-offset_bottom = 130.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 75.0
+offset_bottom = 75.0
 mouse_filter = 2
 color = Color(0.3, 0.35, 0.45, 1)
 
@@ -91,29 +118,37 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 12
 text = "CALM"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="HPPips" type="Label" parent="HUD"]
-offset_left = 142.0
-offset_top = 20.0
-offset_right = 360.0
-offset_bottom = 60.0
+offset_left = 82.0
+offset_top = 10.0
+offset_right = 210.0
+offset_bottom = 35.0
 theme_override_colors/font_color = Color(0.95, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 20
 text = "■■■■■"
 
+[node name="MoneyLabel" type="Label" parent="HUD"]
+offset_left = 82.0
+offset_top = 36.0
+offset_right = 160.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.55, 0.9, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "$0"
 [node name="HitsLabel" type="Label" parent="HUD"]
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -340.0
-offset_top = 72.0
-offset_right = -20.0
-offset_bottom = 116.0
-theme_override_font_sizes/font_size = 14
+offset_left = -200.0
+offset_top = 38.0
+offset_right = -10.0
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 9
 text = "HITS TAKEN: 0
 BLOCKED BY COVER: 0"
 horizontal_alignment = 2
@@ -124,11 +159,11 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -175.0
-offset_top = -45.0
-offset_right = 175.0
-offset_bottom = 45.0
-theme_override_font_sizes/font_size = 56
+offset_left = -110.0
+offset_top = -27.5
+offset_right = 110.0
+offset_bottom = 27.5
+theme_override_font_sizes/font_size = 36
 text = "RELOAD"
 horizontal_alignment = 1
 
@@ -136,13 +171,13 @@ horizontal_alignment = 1
 visible = false
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 20.0
-offset_top = -180.0
-offset_right = 300.0
-offset_bottom = -120.0
-pivot_offset = Vector2(0, 30)
+offset_left = 10.0
+offset_top = -75.0
+offset_right = 200.0
+offset_bottom = -35.0
+pivot_offset = Vector2(0, 20)
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 30
 text = "COUNTER"
 
 [node name="DownLabel" type="Label" parent="HUD"]
@@ -151,25 +186,61 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = 60.0
-offset_right = 200.0
-offset_bottom = 150.0
+offset_left = -125.0
+offset_top = 30.0
+offset_right = 125.0
+offset_bottom = 85.0
 theme_override_colors/font_color = Color(0.95, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 42
 text = "DOWN"
 horizontal_alignment = 1
+
+[node name="ClearedLabel" type="Label" parent="HUD"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = 30.0
+offset_right = 125.0
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 42
+text = "CLEARED"
+horizontal_alignment = 1
+
+[node name="GearRow" type="HBoxContainer" parent="HUD"]
+offset_left = 10.0
+offset_top = 81.0
+offset_right = 350.0
+offset_bottom = 105.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="GearInfo" type="Label" parent="HUD"]
+visible = false
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 109.0
+offset_right = -10.0
+offset_bottom = 135.0
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_gearinfo")
+text = "GEAR: description"
+autowrap_mode = 2
 
 [node name="Instructions" type="Label" parent="HUD" unique_id=609493218]
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -170.0
-offset_right = -20.0
-offset_bottom = -110.0
-theme_override_font_sizes/font_size = 15
-text = "TAP: FIRE     SPACE / SWIPE DOWN: COVER + RELOAD (AGAIN TO LEAVE)     B: NEXT BIOME"
+offset_left = 10.0
+offset_top = -95.0
+offset_right = -10.0
+offset_bottom = -60.0
+theme_override_font_sizes/font_size = 10
+text = "SPACE / SWIPE DOWN: COVER + RELOAD (AGAIN TO LEAVE)
+TAP: FIRE     B: NEXT BIOME     G: GET GEAR"
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -177,18 +248,30 @@ autowrap_mode = 2
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -100.0
-offset_right = -20.0
-offset_bottom = -40.0
-theme_override_constants/separation = 14
+offset_left = 10.0
+offset_top = -55.0
+offset_right = -10.0
+offset_bottom = -15.0
+theme_override_constants/separation = 7
 alignment = 1
 
+[node name="ArsenalLabel" type="Label" parent="HUD"]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -15.0
+offset_right = -10.0
+offset_bottom = -3.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_font_sizes/font_size = 9
+text = "ARSENAL"
+horizontal_alignment = 1
 [node name="HitMarker" type="Label" parent="HUD" unique_id=1175427613]
 visible = false
-offset_right = 48.0
-offset_bottom = 48.0
-theme_override_font_sizes/font_size = 34
+offset_right = 32.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 22
 text = "✕"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -199,3 +282,35 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0.9, 0.05, 0.05, 0.35)
+
+[node name="RewardChoice" type="ColorRect" parent="HUD"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.03, 0.05, 0.82)
+
+[node name="Cards" type="VBoxContainer" parent="HUD/RewardChoice"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -260.0
+offset_right = 150.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Title" type="Label" parent="HUD/RewardChoice/Cards"]
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "ELITE REWARD
+CHOOSE ONE"
+horizontal_alignment = 1

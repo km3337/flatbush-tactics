@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="FTEvent" format=3]
+
+[ext_resource type="Script" path="res://scripts/events/event_choice.gd" id="1_tj4q8"]
+[ext_resource type="Script" path="res://scripts/events/event_outcome.gd" id="2_24equ"]
+[ext_resource type="Script" path="res://scripts/events/event_effect.gd" id="3_gbbae"]
+[ext_resource type="Script" path="res://scripts/events/effects/health_effect.gd" id="4_nmsp0"]
+[ext_resource type="Resource" path="res://ammo/explosive.tres" id="5_bs41l"]
+[ext_resource type="Script" path="res://scripts/events/effects/round_effect.gd" id="6_g0n6x"]
+[ext_resource type="Script" path="res://scripts/events/event.gd" id="7_qc2qx"]
+
+[sub_resource type="Resource" id="Resource_k22fj"]
+script = ExtResource("2_24equ")
+text = "You watch from a safe distance. Honestly, a great show."
+
+[sub_resource type="Resource" id="Resource_42s5y"]
+script = ExtResource("1_tj4q8")
+label = "Sit by the door"
+outcomes = Array[ExtResource("2_24equ")]([SubResource("Resource_k22fj")])
+
+[sub_resource type="Resource" id="Resource_2ohcc"]
+script = ExtResource("4_nmsp0")
+amount = Vector2i(-3, -2)
+
+[sub_resource type="Resource" id="Resource_vl03o"]
+script = ExtResource("2_24equ")
+text = "A flying sneaker catches you square in the jaw. The crowd cheers. You don't."
+effects = Array[ExtResource("3_gbbae")]([SubResource("Resource_2ohcc")])
+
+[sub_resource type="Resource" id="Resource_lhjdc"]
+script = ExtResource("1_tj4q8")
+label = "Sit in the middle"
+outcomes = Array[ExtResource("2_24equ")]([SubResource("Resource_vl03o")])
+
+[sub_resource type="Resource" id="Resource_jfykb"]
+script = ExtResource("4_nmsp0")
+amount = Vector2i(-1, -1)
+
+[sub_resource type="Resource" id="Resource_vomxm"]
+script = ExtResource("2_24equ")
+weight = 5.0
+text = "A spin goes wide and clips your shoulder."
+effects = Array[ExtResource("3_gbbae")]([SubResource("Resource_jfykb")])
+
+[sub_resource type="Resource" id="Resource_fy5rb"]
+script = ExtResource("2_24equ")
+weight = 4.0
+text = "They swing right past your face. Close, but clean."
+
+[sub_resource type="Resource" id="Resource_odgs8"]
+script = ExtResource("6_g0n6x")
+mod = ExtResource("5_bs41l")
+
+[sub_resource type="Resource" id="Resource_efub7"]
+script = ExtResource("2_24equ")
+text = "The duffel tips over as they land. A heavy, strange-looking shell rolls to your feet. Nobody claims it."
+effects = Array[ExtResource("3_gbbae")]([SubResource("Resource_odgs8")])
+
+[sub_resource type="Resource" id="Resource_0ml85"]
+script = ExtResource("1_tj4q8")
+label = "Sit by the pole"
+outcomes = Array[ExtResource("2_24equ")]([SubResource("Resource_vomxm"), SubResource("Resource_fy5rb"), SubResource("Resource_efub7")])
+
+[resource]
+script = ExtResource("7_qc2qx")
+id = &"subway_acrobat"
+title = "Showtime"
+text = "\"WHAT TIME IS IT?\" \"SHOWTIME!\"
+
+Three acrobats clear the middle of the car, and three seats are open. The one by the door is out of everyone's way. The middle bench is right where they keep landing. The seat by the pole has a duffel bag under it that rattles like loose hardware."
+choices = Array[ExtResource("1_tj4q8")]([SubResource("Resource_42s5y"), SubResource("Resource_lhjdc"), SubResource("Resource_0ml85")])

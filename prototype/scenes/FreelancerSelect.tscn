@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/freelancer_select.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/freelancer.gd" id="2"]
+[ext_resource type="Resource" path="res://freelancers/ali.tres" id="3"]
+
+[node name="FreelancerSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+roster = Array[ExtResource("2")]([ExtResource("3")])
+locked_slots = 2

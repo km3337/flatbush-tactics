@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/last_round.gd" id="1_8lmx1"]
+
+[resource]
+script = ExtResource("1_8lmx1")
+id = &"last_round"
+display_name = "Last Round"
+description = "The last round in your magazine deals double damage."
+rarity = 2
+sources = 2
+abbreviation = "LR"
+color = Color(0.6, 0.2, 0.2, 1)

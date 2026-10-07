@@ -11,21 +11,22 @@ config_version=5
 [application]
 
 config/name="Flatbush Tactics"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/FreelancerSelect.tscn"
 config/features=PackedStringArray("4.6")
 
 [autoload]
 
+WindowFitter="*res://scripts/window_fitter.gd"
+Run="*res://scripts/run.gd"
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]
 
-window/size/viewport_width=720
-window/size/viewport_height=1280
-window/size/window_width_override=450
-window/size/window_height_override=800
+window/size/viewport_width=360
+window/size/viewport_height=780
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/stretch/scale_mode="integer"
 window/handheld/orientation=1
 
 [editor_plugins]
@@ -48,5 +49,6 @@ NODE.JS v20.14.0 FOUND BUT 22+ REQUIRED — Update from https://nodejs.org"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

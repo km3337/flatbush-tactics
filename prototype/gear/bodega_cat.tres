@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/bodega_cat.gd" id="1_11jso"]
+
+[resource]
+script = ExtResource("1_11jso")
+id = &"bodega_cat"
+display_name = "Bodega Cat Charm"
+description = "The first hit you take each battle does no damage."
+rarity = 1
+sources = 4
+abbreviation = "BC"
+color = Color(0.5, 0.3, 0.45, 1)

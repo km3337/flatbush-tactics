@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/ammo/freeze.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"freeze"
+display_name = "Freeze"
+description = "Slows the target for 3s: its wind-up takes twice as long and it stops moving."
+color = Color(0.45, 0.8, 1, 1)
+abbreviation = "FZ"
+seconds = 3.0
+windup_speed = 0.5

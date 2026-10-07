@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FTShop" format=3]
+
+[ext_resource type="Script" path="res://scripts/shops/shop.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"hardware_store"
+display_name = "Hardware Store"
+greeting = "Past the mops and the key-cutting machine, there's a back shelf of rounds that definitely aren't hardware."
+sells = 1
+stock_size = 4

@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="FTEncounter" format=3]
+
+[ext_resource type="Script" path="res://scripts/encounter.gd" id="1_8m5ir"]
+[ext_resource type="Script" path="res://scripts/wave.gd" id="2_fgk1u"]
+[ext_resource type="Script" path="res://scripts/spawn.gd" id="3_yotyn"]
+[ext_resource type="Resource" path="res://enemies/grunt.tres" id="4_w6m3d"]
+[ext_resource type="Resource" path="res://enemies/runner.tres" id="5_bsbgl"]
+[ext_resource type="Resource" path="res://enemies/heavy.tres" id="6_1ovsb"]
+
+[sub_resource type="Resource" id="Resource_tr1re"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("4_w6m3d")
+slot = &"far_left"
+
+[sub_resource type="Resource" id="Resource_faoq5"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("5_bsbgl")
+slot = &"far_right"
+
+[sub_resource type="Resource" id="Resource_ov6mv"]
+script = ExtResource("2_fgk1u")
+spawns = Array[ExtResource("3_yotyn")]([SubResource("Resource_tr1re"), SubResource("Resource_faoq5")])
+
+[sub_resource type="Resource" id="Resource_qn0yi"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("6_1ovsb")
+slot = &"near_center"
+
+[sub_resource type="Resource" id="Resource_pplhn"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("4_w6m3d")
+slot = &"far_center"
+
+[sub_resource type="Resource" id="Resource_17lxw"]
+script = ExtResource("2_fgk1u")
+spawns = Array[ExtResource("3_yotyn")]([SubResource("Resource_qn0yi"), SubResource("Resource_pplhn")])
+trigger = 1
+trigger_value = 1.0
+
+[sub_resource type="Resource" id="Resource_pi1fv"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("6_1ovsb")
+slot = &"near_right"
+
+[sub_resource type="Resource" id="Resource_tga77"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("5_bsbgl")
+slot = &"far_center"
+
+[sub_resource type="Resource" id="Resource_kjlq1"]
+script = ExtResource("3_yotyn")
+enemy_type = ExtResource("4_w6m3d")
+slot = &"far_left"
+
+[sub_resource type="Resource" id="Resource_y6xmp"]
+script = ExtResource("2_fgk1u")
+spawns = Array[ExtResource("3_yotyn")]([SubResource("Resource_pi1fv"), SubResource("Resource_tga77"), SubResource("Resource_kjlq1")])
+trigger = 2
+trigger_value = 10.0
+
+[resource]
+script = ExtResource("1_8m5ir")
+display_name = "Test Street"
+waves = Array[ExtResource("2_fgk1u")]([SubResource("Resource_ov6mv"), SubResource("Resource_17lxw"), SubResource("Resource_y6xmp")])

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FTStatGear" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/stat_gear.gd" id="1_y56e0"]
+
+[resource]
+script = ExtResource("1_y56e0")
+stat = &"magazine_size"
+add = 2.0
+id = &"extended_mag"
+display_name = "Extended Mag"
+description = "+2 rounds per magazine."
+abbreviation = "EM"
+color = Color(0.4, 0.35, 0.25, 1)

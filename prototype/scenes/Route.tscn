@@ -1,0 +1,127 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/route_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/route_view.gd" id="2"]
+
+[node name="Route" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.04, 0.08, 0.16, 1)
+
+[node name="Frame" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -320.0
+offset_right = 180.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Welcome" type="Label" parent="Frame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 350.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 17
+text = "Welcome to Church Av"
+vertical_alignment = 1
+clip_text = true
+
+[node name="BlueBar" type="ColorRect" parent="Frame"]
+layout_mode = 0
+offset_top = 44.0
+offset_right = 360.0
+offset_bottom = 66.0
+mouse_filter = 2
+color = Color(0.12, 0.37, 0.75, 1)
+
+[node name="NextTrain" type="Label" parent="Frame/BlueBar"]
+layout_mode = 0
+offset_left = 14.0
+offset_right = 140.0
+offset_bottom = 22.0
+theme_override_font_sizes/font_size = 12
+text = "Next train"
+vertical_alignment = 1
+
+[node name="Status" type="Label" parent="Frame/BlueBar"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_right = 350.0
+offset_bottom = 22.0
+theme_override_font_sizes/font_size = 9
+text = "HP 5/5   GEAR 1   ARSENAL 13/20"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Bullet" type="Control" parent="Frame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 14.0
+offset_top = 74.0
+offset_right = 62.0
+offset_bottom = 122.0
+mouse_filter = 2
+
+[node name="Destination" type="Label" parent="Frame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 74.0
+offset_top = 76.0
+offset_right = 350.0
+offset_bottom = 102.0
+theme_override_font_sizes/font_size = 18
+text = "to Last Stop"
+
+[node name="StoppingAt" type="Label" parent="Frame"]
+layout_mode = 0
+offset_left = 74.0
+offset_top = 102.0
+offset_right = 350.0
+offset_bottom = 118.0
+theme_override_colors/font_color = Color(0.6, 0.66, 0.8, 1)
+theme_override_font_sizes/font_size = 10
+text = "Stopping at"
+
+[node name="RouteView" type="Control" parent="Frame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 128.0
+offset_right = 360.0
+offset_bottom = 580.0
+mouse_filter = 2
+script = ExtResource("2")
+
+[node name="ContinueButton" type="Button" parent="Frame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 30.0
+offset_top = 590.0
+offset_right = 330.0
+offset_bottom = 628.0
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+text = "CONTINUE"

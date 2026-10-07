@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="FTEncounter" format=3]
+
+[ext_resource type="Script" path="res://scripts/encounter.gd" id="1_sm37l"]
+[ext_resource type="Script" path="res://scripts/wave.gd" id="2_c7me8"]
+[ext_resource type="Script" path="res://scripts/spawn.gd" id="3_sddlt"]
+[ext_resource type="Resource" path="res://enemies/enforcer.tres" id="4_3x3vd"]
+[ext_resource type="Resource" path="res://enemies/grunt.tres" id="5_ewi0d"]
+[ext_resource type="Resource" path="res://enemies/runner.tres" id="6_li4d6"]
+
+[sub_resource type="Resource" id="Resource_sm37l"]
+script = ExtResource("3_sddlt")
+enemy_type = ExtResource("4_3x3vd")
+slot = &"near_center"
+
+[sub_resource type="Resource" id="Resource_c7me8"]
+script = ExtResource("3_sddlt")
+enemy_type = ExtResource("5_ewi0d")
+slot = &"far_left"
+
+[sub_resource type="Resource" id="Resource_sddlt"]
+script = ExtResource("3_sddlt")
+enemy_type = ExtResource("5_ewi0d")
+slot = &"far_right"
+
+[sub_resource type="Resource" id="Resource_3x3vd"]
+script = ExtResource("2_c7me8")
+spawns = Array[ExtResource("3_sddlt")]([SubResource("Resource_sm37l"), SubResource("Resource_c7me8"), SubResource("Resource_sddlt")])
+
+[sub_resource type="Resource" id="Resource_ewi0d"]
+script = ExtResource("3_sddlt")
+enemy_type = ExtResource("6_li4d6")
+slot = &"far_center"
+
+[sub_resource type="Resource" id="Resource_li4d6"]
+script = ExtResource("3_sddlt")
+enemy_type = ExtResource("6_li4d6")
+slot = &"far_right"
+
+[sub_resource type="Resource" id="Resource_qx1cg"]
+script = ExtResource("2_c7me8")
+spawns = Array[ExtResource("3_sddlt")]([SubResource("Resource_ewi0d"), SubResource("Resource_li4d6")])
+trigger = 1
+trigger_value = 1.0
+
+[resource]
+script = ExtResource("1_sm37l")
+display_name = "Test Elite"
+tier = 2
+waves = Array[ExtResource("2_c7me8")]([SubResource("Resource_3x3vd"), SubResource("Resource_qx1cg")])

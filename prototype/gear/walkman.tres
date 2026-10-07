@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/walkman.gd" id="1_53x1x"]
+
+[resource]
+script = ExtResource("1_53x1x")
+id = &"walkman"
+display_name = "Walkman"
+description = "Every 3rd counter heals 1 HP."
+rarity = 2
+sources = 6
+abbreviation = "WM"
+color = Color(0.25, 0.25, 0.3, 1)

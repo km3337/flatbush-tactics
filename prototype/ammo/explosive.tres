@@ -1,0 +1,14 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/ammo/explosive.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"explosive"
+display_name = "Explosive"
+description = "The hit explodes, dealing 1 damage to every enemy near the target."
+rarity = 2
+color = Color(1, 0.35, 0.2, 1)
+abbreviation = "EX"
+radius = 80.0
+splash_damage = 1

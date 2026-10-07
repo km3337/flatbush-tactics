@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FTStatGear" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/stat_gear.gd" id="1_l22pj"]
+
+[resource]
+script = ExtResource("1_l22pj")
+stat = &"reload_seconds"
+multiply = 0.7
+id = &"speed_loader"
+display_name = "Speed Loader"
+description = "Reload 30% faster."
+abbreviation = "SL"
+color = Color(0.25, 0.45, 0.4, 1)

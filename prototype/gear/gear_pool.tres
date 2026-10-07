@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FTGearPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear.gd" id="1_vbxun"]
+[ext_resource type="Resource" path="res://gear/speed_loader.tres" id="2_6mxn0"]
+[ext_resource type="Resource" path="res://gear/extended_mag.tres" id="3_vqos3"]
+[ext_resource type="Resource" path="res://gear/puffer_jacket.tres" id="4_s7jkv"]
+[ext_resource type="Resource" path="res://gear/brass_knuckles.tres" id="5_tt3cn"]
+[ext_resource type="Resource" path="res://gear/bodega_cat.tres" id="6_rsu5a"]
+[ext_resource type="Resource" path="res://gear/last_round.tres" id="7_xombh"]
+[ext_resource type="Resource" path="res://gear/walkman.tres" id="8_cwh3l"]
+[ext_resource type="Script" path="res://scripts/gear_pool.gd" id="9_1qsgo"]
+
+[resource]
+script = ExtResource("9_1qsgo")
+gear = Array[ExtResource("1_vbxun")]([ExtResource("2_6mxn0"), ExtResource("3_vqos3"), ExtResource("4_s7jkv"), ExtResource("5_tt3cn"), ExtResource("6_rsu5a"), ExtResource("7_xombh"), ExtResource("8_cwh3l")])

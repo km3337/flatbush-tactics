@@ -1,0 +1,89 @@
+[gd_resource type="Resource" script_class="FTEvent" format=3]
+
+[ext_resource type="Script" path="res://scripts/events/event_choice.gd" id="1_lguji"]
+[ext_resource type="Script" path="res://scripts/events/event_outcome.gd" id="2_11me5"]
+[ext_resource type="Script" path="res://scripts/events/event_effect.gd" id="3_rs7sp"]
+[ext_resource type="Script" path="res://scripts/events/effects/money_effect.gd" id="4_srx5n"]
+[ext_resource type="Script" path="res://scripts/events/effects/max_health_effect.gd" id="5_csh5u"]
+[ext_resource type="Script" path="res://scripts/events/effects/gear_effect.gd" id="6_fepi7"]
+[ext_resource type="Script" path="res://scripts/events/effects/ambush_effect.gd" id="7_sbgaq"]
+[ext_resource type="Script" path="res://scripts/events/event.gd" id="8_1wqpm"]
+
+[sub_resource type="Resource" id="Resource_o44xt"]
+script = ExtResource("4_srx5n")
+amount = Vector2i(-9, -5)
+
+[sub_resource type="Resource" id="Resource_hvw0g"]
+script = ExtResource("2_11me5")
+weight = 5.0
+text = "He beams, signs it with a flourish and moves on. It's... fine."
+effects = Array[ExtResource("3_rs7sp")]([SubResource("Resource_o44xt")])
+
+[sub_resource type="Resource" id="Resource_3sqhx"]
+script = ExtResource("4_srx5n")
+amount = Vector2i(-25, -15)
+
+[sub_resource type="Resource" id="Resource_mloc8"]
+script = ExtResource("2_11me5")
+weight = 3.0
+text = "He keeps reading until you pay him to stop. The book costs more than your MetroCard."
+effects = Array[ExtResource("3_rs7sp")]([SubResource("Resource_3sqhx")])
+
+[sub_resource type="Resource" id="Resource_o4oto"]
+script = ExtResource("4_srx5n")
+amount = Vector2i(-9, -5)
+
+[sub_resource type="Resource" id="Resource_gkajn"]
+script = ExtResource("5_csh5u")
+
+[sub_resource type="Resource" id="Resource_fym0h"]
+script = ExtResource("2_11me5")
+text = "One poem lands. You read it twice. You feel steadier."
+effects = Array[ExtResource("3_rs7sp")]([SubResource("Resource_o4oto"), SubResource("Resource_gkajn")])
+
+[sub_resource type="Resource" id="Resource_h2qhe"]
+script = ExtResource("4_srx5n")
+amount = Vector2i(-9, -5)
+
+[sub_resource type="Resource" id="Resource_8d0uv"]
+script = ExtResource("6_fepi7")
+rarity = 0
+
+[sub_resource type="Resource" id="Resource_2qwek"]
+script = ExtResource("2_11me5")
+text = "Tucked inside the cover is something he forgot to take out."
+effects = Array[ExtResource("3_rs7sp")]([SubResource("Resource_h2qhe"), SubResource("Resource_8d0uv")])
+
+[sub_resource type="Resource" id="Resource_y778s"]
+script = ExtResource("1_lguji")
+label = "Buy his book"
+requires_money = 1
+outcomes = Array[ExtResource("2_11me5")]([SubResource("Resource_hvw0g"), SubResource("Resource_mloc8"), SubResource("Resource_fym0h"), SubResource("Resource_2qwek")])
+
+[sub_resource type="Resource" id="Resource_xdw3h"]
+script = ExtResource("2_11me5")
+text = "He shrugs and moves on to the next car."
+
+[sub_resource type="Resource" id="Resource_qm7te"]
+script = ExtResource("7_sbgaq")
+
+[sub_resource type="Resource" id="Resource_fyl8b"]
+script = ExtResource("2_11me5")
+text = "He leans in close. \"I'll remember this.\" He's on his phone before the doors close."
+effects = Array[ExtResource("3_rs7sp")]([SubResource("Resource_qm7te")])
+
+[sub_resource type="Resource" id="Resource_fsh4f"]
+script = ExtResource("1_lguji")
+label = "Ignore him"
+outcomes = Array[ExtResource("2_11me5")]([SubResource("Resource_xdw3h"), SubResource("Resource_fyl8b")])
+
+[resource]
+script = ExtResource("8_1wqpm")
+id = &"traveling_poet"
+title = "Traveling Poet"
+text = "A man in a corduroy blazer works his way down the car, reading from a stapled chapbook. He stops in front of you.
+
+\"Five dollars. Ten. Whatever the soul can spare.\"
+
+He has the look of a man who remembers faces. The longer he talks, the more the book seems to cost."
+choices = Array[ExtResource("1_lguji")]([SubResource("Resource_y778s"), SubResource("Resource_fsh4f")])

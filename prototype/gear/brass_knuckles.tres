@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/gear/brass_knuckles.gd" id="1_vdbwc"]
+
+[resource]
+script = ExtResource("1_vdbwc")
+id = &"brass_knuckles"
+display_name = "Brass Knuckles"
+description = "Counters deal 1 extra damage."
+rarity = 1
+sources = 6
+abbreviation = "BK"
+color = Color(0.55, 0.45, 0.2, 1)

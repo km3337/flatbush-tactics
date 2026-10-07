@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/ammo/thunder.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"thunder"
+display_name = "Thunder"
+description = "The hit arcs to the nearest other enemy for 1 damage."
+rarity = 1
+color = Color(1, 0.92, 0.3, 1)
+abbreviation = "TH"
+chain_damage = 1

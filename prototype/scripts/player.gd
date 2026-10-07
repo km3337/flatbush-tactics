@@ -18,6 +18,12 @@ func _ready() -> void:
 func is_low() -> bool:
 	return health <= low_health_threshold
 
+func heal(amount := 1) -> void:
+	if health <= 0:
+		return
+	health = min(health + amount, max_health)
+	health_changed.emit(health, max_health)
+
 func take_damage(amount := 1) -> void:
 	if health <= 0:
 		return
