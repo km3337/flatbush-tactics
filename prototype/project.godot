@@ -18,6 +18,7 @@ config/features=PackedStringArray("4.6")
 
 WindowFitter="*res://scripts/window_fitter.gd"
 Run="*res://scripts/run.gd"
+Reticle="*res://scripts/reticle.gd"
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]

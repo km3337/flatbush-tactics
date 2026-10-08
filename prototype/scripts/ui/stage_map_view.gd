@@ -1,20 +1,21 @@
 class_name FTStageMapView
 extends Control
 
-## Draws a stage map in the style of a printed MTA map, inside a 360x640
-## frame: one vertical coloured line per train line, stop dots with
-## placeholder icons, white transfer bars joining shared stations, route
-## bullets at the bottom (where you start) and the Last Stop at the top. The
-## selected line stays bright, with station names in a column on the right;
-## the others dim. Tap near a line (or its bullet) to emit `line_tapped`.
-## Icons come from FTStopIcons (drawn in code until there's art).
-
-signal line_tapped(index: int)
+## Draws a stage map in the style of a printed MTA map, 360 wide and taller
+## than the screen (FTLineSelect scrolls it): one vertical coloured line per
+## train line, stop dots with placeholder icons, white transfer brackets
+## joining shared stations, route bullets at the bottom (where you start) and
+## the Last Stop at the top. The selected line stays bright, with station
+## names in a column on the right; the others dim. `line_at()` says which
+## line a point is on. Icons come from FTStopIcons (drawn in code until
+## there's art).
 
 const LAST_STOP_Y := 62.0
-const TOP_STOP_Y := 128.0
-const BOTTOM_STOP_Y := 468.0
-const BULLET_Y := 504.0
+const TOP_STOP_Y := 150.0
+## Vertical distance between stops; sets how tall the map is (~2 screens).
+const ROW_SPACING := 150.0
+const BULLET_GAP := 46.0
+const BOTTOM_MARGIN := 40.0
 const FIRST_COLUMN_X := 46.0
 const COLUMN_GAP := 58.0
 const NAME_X := 196.0
@@ -29,12 +30,20 @@ const DIM_ALPHA := 0.28
 var stage: FTStageMap
 var selected := -1
 
+var BULLET_Y: float:
+	get: return row_y(0) + BULLET_GAP
+
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_IGNORE  # FTLineSelect handles input
 
 func show_stage(map: FTStageMap) -> void:
 	stage = map
+	custom_minimum_size = Vector2(360, content_height())
+	size = custom_minimum_size
 	queue_redraw()
+
+func content_height() -> float:
+	return BULLET_Y + BULLET_GAP / 2.0 + BOTTOM_MARGIN
 
 func select(index: int) -> void:
 	selected = index
@@ -43,24 +52,23 @@ func select(index: int) -> void:
 func column_x(line: int) -> float:
 	return FIRST_COLUMN_X + line * COLUMN_GAP
 
+## Depth 0 (first stop) at the bottom, the last stop before the Last Stop at
+## TOP_STOP_Y.
 func row_y(depth: int) -> float:
 	var n := stage.lines[0].length()
-	return lerpf(BOTTOM_STOP_Y, TOP_STOP_Y, float(depth) / float(maxi(n - 1, 1)))
+	return TOP_STOP_Y + (n - 1 - depth) * ROW_SPACING
 
 func last_stop_position() -> Vector2:
 	return Vector2((column_x(0) + column_x(stage.lines.size() - 1)) / 2.0, LAST_STOP_Y)
 
-func _gui_input(event: InputEvent) -> void:
-	if stage == null or not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
-		return
-	var pos: Vector2 = event.position
-	if pos.y < LAST_STOP_Y or pos.y > BULLET_Y + BULLET_RADIUS + 8.0:
-		return
+## The line whose column is under `pos` (map coordinates), or -1.
+func line_at(pos: Vector2) -> int:
+	if stage == null or pos.y < LAST_STOP_Y or pos.y > BULLET_Y + BULLET_RADIUS + 8.0:
+		return -1
 	for i in stage.lines.size():
 		if absf(pos.x - column_x(i)) <= TAP_DISTANCE:
-			line_tapped.emit(i)
-			accept_event()
-			return
+			return i
+	return -1
 
 func _alpha(line: int) -> float:
 	return 1.0 if selected < 0 or selected == line else DIM_ALPHA

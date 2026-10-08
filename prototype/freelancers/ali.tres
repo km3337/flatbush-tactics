@@ -17,6 +17,7 @@ portrait_position = Vector2(0, 0)
 max_health = 5
 magazine_size = 5
 reload_seconds = 0.65
+fire_cooldown = 0.4
 arsenal_capacity = 20
 starting_money = 20
 starting_gear = ExtResource("5")

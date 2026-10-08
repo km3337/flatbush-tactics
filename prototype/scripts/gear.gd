@@ -25,7 +25,7 @@ enum Source { START = 1, ELITE = 2, EVENT = 4 }
 @export var icon: Texture2D
 
 ## Passive stat changes. Stats: &"magazine_size", &"reload_seconds",
-## &"max_health", &"arsenal_capacity".
+## &"fire_cooldown", &"max_health", &"arsenal_capacity".
 func modify_stat(_stat: StringName, value: float) -> float:
 	return value
 

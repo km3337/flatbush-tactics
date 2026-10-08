@@ -17,6 +17,9 @@ signal reload_finished
 ## Set from the freelancer (plus gear) at battle start.
 @export var magazine_size := 5
 @export var reload_seconds := 0.65
+## Seconds after a shot before the next one can fire.
+@export var fire_cooldown := 0.4
+var cooldown_left := 0.0
 var magazine: Array[FTAmmoMod] = []  # [0] fires next
 var draw_pile: Array[FTAmmoMod] = []
 var discard_pile: Array[FTAmmoMod] = []
@@ -37,12 +40,23 @@ func load_arsenal(rounds: Array[FTAmmoMod], random: RandomNumberGenerator) -> vo
 	_top_up()
 	_emit_changes()
 
+func _process(delta: float) -> void:
+	cooldown_left = maxf(cooldown_left - delta, 0.0)
+
+func is_cooling_down() -> bool:
+	return cooldown_left > 0.0
+
+## 1 right after a shot, falling to 0 when the next shot is ready.
+func cooldown_ratio() -> float:
+	return cooldown_left / fire_cooldown if fire_cooldown > 0.0 else 0.0
+
 func fire(screen_position: Vector2) -> void:
-	if is_reloading:
+	if is_reloading or is_cooling_down():
 		return
 	if magazine.is_empty():
 		empty_triggered.emit()
 		return
+	cooldown_left = fire_cooldown
 	last_fired = magazine.pop_front()
 	discard_pile.append(last_fired)
 	fired.emit(screen_position)

@@ -38,6 +38,8 @@ const GEAR_SOURCE_HEADERS := {
 var wave_text := ""
 var is_down := false
 var is_cleared := false
+var buffered_shot := Vector2.ZERO
+var has_buffered_shot := false
 func _ready() -> void:
 	if not Run.active:
 		Run.start_run()  # battle launched directly, e.g. from the editor
@@ -103,6 +105,7 @@ func _apply_gear_stats() -> void:
 	var freelancer := Run.freelancer
 	weapon.magazine_size = roundi(Run.modify_stat(&"magazine_size", freelancer.magazine_size))
 	weapon.reload_seconds = Run.modify_stat(&"reload_seconds", freelancer.reload_seconds)
+	weapon.fire_cooldown = Run.modify_stat(&"fire_cooldown", freelancer.fire_cooldown)
 	var old_max := player.max_health
 	player.max_health = Run.max_hp()
 	player.health = clampi(player.health + player.max_health - old_max, 0, player.max_health)
@@ -123,14 +126,34 @@ func _on_reload_requested() -> void:
 		if not weapon.is_reloading:
 			cover.exit()
 		return
+	has_buffered_shot = false  # ducking cancels a queued shot
 	cover.enter()
 	weapon.reload()
 
-# Taps do nothing while in cover, or once the battle is over.
+# Taps do nothing while in cover, or once the battle is over. A tap during
+# the shot cooldown is remembered (only the latest) and fires the moment the
+# cooldown ends.
 func _on_shoot_requested(screen_position: Vector2) -> void:
-	if is_down or is_cleared or cover.in_cover:
+	if not _can_shoot():
+		return
+	if weapon.is_cooling_down():
+		buffered_shot = screen_position
+		has_buffered_shot = true
 		return
 	weapon.fire(screen_position)
+
+func _can_shoot() -> bool:
+	return not (is_down or is_cleared or cover.in_cover or weapon.is_reloading)
+
+func _process(_delta: float) -> void:
+	Reticle.cooldown_ratio = weapon.cooldown_ratio()
+	if has_buffered_shot and not weapon.is_cooling_down():
+		has_buffered_shot = false
+		if _can_shoot():
+			weapon.fire(buffered_shot)
+
+func _exit_tree() -> void:
+	Reticle.cooldown_ratio = 0.0
 
 func _center_battlefield() -> void:
 	var visible_size := get_viewport().get_visible_rect().size

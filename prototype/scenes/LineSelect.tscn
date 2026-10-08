@@ -30,9 +30,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -180.0
-offset_top = -320.0
+offset_top = -390.0
 offset_right = 180.0
-offset_bottom = 320.0
+offset_bottom = 390.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -53,21 +53,29 @@ theme_override_font_sizes/font_size = 14
 text = "STAGE 1  ·  CHOOSE YOUR LINE"
 vertical_alignment = 1
 
-[node name="MapView" type="Control" parent="Frame"]
+[node name="MapClip" type="Control" parent="Frame"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 0
 offset_top = 36.0
 offset_right = 360.0
-offset_bottom = 566.0
+offset_bottom = 674.0
+
+[node name="MapView" type="Control" parent="Frame/MapClip"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 360.0
+offset_bottom = 1300.0
+mouse_filter = 2
 script = ExtResource("2")
 
 [node name="Summary" type="Label" parent="Frame"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 10.0
-offset_top = 566.0
+offset_top = 678.0
 offset_right = 350.0
-offset_bottom = 596.0
+offset_bottom = 726.0
 theme_override_colors/font_color = Color(0.08, 0.08, 0.09, 1)
 theme_override_font_sizes/font_size = 9
 text = "TAP A LINE TO SEE ITS STOPS"
@@ -79,9 +87,9 @@ autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 40.0
-offset_top = 598.0
+offset_top = 730.0
 offset_right = 320.0
-offset_bottom = 632.0
+offset_bottom = 770.0
 focus_mode = 0
 theme_override_font_sizes/font_size = 14
 text = "CHOOSE A LINE"

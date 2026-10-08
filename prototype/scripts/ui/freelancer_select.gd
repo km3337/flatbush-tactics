@@ -169,7 +169,7 @@ func _show(new_index: int, direction: int) -> void:
 		bio_label.text = f.bio
 		var gear := f.starting_gear
 		gear_label.text = "%s: %s" % [gear.display_name.to_upper(), gear.description] if gear else "STARTING GEAR: RANDOM COMMON"
-		stats_label.text = "HP %d  ·  MAG %d  ·  RELOAD %.2fs  ·  ARSENAL %d/%d" % [f.max_health, f.magazine_size, f.reload_seconds, f.starting_arsenal.size(), f.arsenal_capacity]
+		stats_label.text = "HP %d · MAG %d · SHOT %.1fs · RELOAD %.2fs · ARSENAL %d/%d" % [f.max_health, f.magazine_size, f.fire_cooldown, f.reload_seconds, f.starting_arsenal.size(), f.arsenal_capacity]
 		rounds_label.text = "ROUNDS: " + _rounds_text(f.starting_arsenal)
 		choose_button.text = "CHOOSE %s" % f.display_name.to_upper()
 		choose_button.disabled = false

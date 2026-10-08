@@ -67,8 +67,13 @@ Line Select → Transit → Encounter → Route screen → Transit → … → L
    unknown stops and transfers. BOARD THE X (or Enter) locks the line in.
    Transfers are drawn as a white bracket that arches over any line in
    between. Icons are drawn in code (`FTStageMapView._draw_icon`) until there
-   is art. For now, boarding goes to the stand-in battle loop, and going
-   down returns to a new Line Select.
+   is art.
+   - The map is about 2 screens tall (150px between stops,
+     `FTStageMapView.ROW_SPACING`), so it never fits on one screen. It opens on
+     the Last Stop, holds for 1s, then glides down over 3s to the first stops;
+     a tap or key skips the pan. After that the player scrolls (drag, mouse
+     wheel, Up/Down or W/S) and taps any part of a line to select it.
+     BOARD only works once the pan is over. The screen uses the full 360x780.
 3. Run flow: route screen, transit placeholder, battles wired in, HP carry,
    transfers, detours, Last Stop, Stage Clear. **Done.** `Run` drives the
    screens: Line Select → Transit → stop → Route → Transit → … → Last Stop →
