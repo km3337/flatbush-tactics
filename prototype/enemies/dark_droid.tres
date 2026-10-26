@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="FTEnemyType" format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/enemies/dark_droid.png" id="art_png"]
+[ext_resource type="JSON" path="res://assets/enemies/dark_droid.json" id="art_json"]
+[ext_resource type="Texture2D" path="res://assets/enemies/dark_droid_orb.png" id="orb_png"]
+[ext_resource type="Resource" path="res://enemies/seeker.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Dark Droid"
+floats = true
+entrance = 2
+attack = 1
+lob_seconds = 1.5
+lob_damage = 3
+lob_charge = true
+lob_size = 2.0
+lob_color = Color(0.45, 1, 0.4, 1)
+lob_shootable_in_flight = false
+counter_hits = 3
+max_health = 30
+attack_interval = Vector2(2.5, 4)
+windup_seconds = 2.5
+arc_size = Vector2(90, 40)
+arc_speed = 0.35
+base_color = Color(0.12, 0.22, 0.55, 1)
+summon_type = ExtResource("2")
+summon_count = 2
+summon_below_health = 0.5
+summon_refill_seconds = 4.0
+sheet = ExtResource("art_png")
+sheet_data = ExtResource("art_json")
+lob_sheet = ExtResource("orb_png")
+lob_sheet_frames = 9
+lob_fps = 14.0

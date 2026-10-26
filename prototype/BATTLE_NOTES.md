@@ -49,6 +49,11 @@ implements the basics listed under "In the prototype now".
   of you. The two near slots are spread apart (centres x=115 and x=280) so
   two 3x enemies don't stack; big ones (the 3x brain is 237px wide) can run
   off the screen edge.
+- **Walkers stand on the floor; floaters hover.** Each battle background
+  (`FTBackdrop`) has its own floor position for every slot. Walkers use it
+  even though the floor is behind the cover (hidden while ducked; their "!"
+  warnings still show). Floaters (`FTEnemyType.floats`, so far only the
+  tentacle brain) use the mid-air slots, which stay visible above the cover.
 - Each enemy type has an entrance (`FTEnemyType.entrance`):
   - **Wobble:** grows in from the back (small, high, dim), waddling side to
     side as it drops into its slot (1s).

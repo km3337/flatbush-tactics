@@ -1,0 +1,208 @@
+{
+ "frames": [
+  {
+   "duration": 90,
+   "filename": "seeker 0",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 0,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 90,
+   "filename": "seeker 1",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 32,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 90,
+   "filename": "seeker 2",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 64,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 90,
+   "filename": "seeker 3",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 96,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "seeker 4",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 128,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "seeker 5",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 160,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "seeker 6",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 192,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "seeker 7",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 224,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 150,
+   "filename": "seeker 8",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 256,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 120,
+   "filename": "seeker 9",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 288,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  },
+  {
+   "duration": 120,
+   "filename": "seeker 10",
+   "frame": {
+    "h": 24,
+    "w": 30,
+    "x": 320,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 24,
+    "w": 30
+   }
+  }
+ ],
+ "meta": {
+  "app": "flatbush cut_enemies2.gd",
+  "frameTags": [
+   {
+    "direction": "forward",
+    "from": 0,
+    "name": "idle",
+    "to": 3
+   },
+   {
+    "direction": "forward",
+    "from": 4,
+    "name": "windup",
+    "to": 7
+   },
+   {
+    "direction": "forward",
+    "from": 8,
+    "name": "hit",
+    "to": 8
+   },
+   {
+    "direction": "forward",
+    "from": 9,
+    "name": "death",
+    "to": 10
+   }
+  ],
+  "image": "seeker.png",
+  "slices": [
+   {
+    "keys": [
+     {
+      "bounds": {
+       "h": 24,
+       "w": 30,
+       "x": 0,
+       "y": 0
+      },
+      "frame": 0,
+      "pivot": {
+       "x": 15,
+       "y": 24
+      }
+     }
+    ],
+    "name": "hitbox"
+   }
+  ]
+ }
+}

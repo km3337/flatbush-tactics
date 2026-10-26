@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FTEncounter" format=3]
+
+[ext_resource type="Script" path="res://scripts/encounter.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/wave.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/spawn.gd" id="3"]
+[ext_resource type="Resource" path="res://enemies/dark_droid.tres" id="4"]
+
+[sub_resource type="Resource" id="Spawn_boss"]
+script = ExtResource("3")
+enemy_type = ExtResource("4")
+slot = &"far_center"
+
+[sub_resource type="Resource" id="Wave_1"]
+script = ExtResource("2")
+spawns = Array[ExtResource("3")]([SubResource("Spawn_boss")])
+
+[resource]
+script = ExtResource("1")
+display_name = "Dark Droid"
+tier = 3
+waves = Array[ExtResource("2")]([SubResource("Wave_1")])

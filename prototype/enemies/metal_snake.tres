@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FTEnemyType" format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/enemies/metal_snake.png" id="art_png"]
+[ext_resource type="JSON" path="res://assets/enemies/metal_snake.json" id="art_json"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Metal Snake"
+max_health = 3
+attack_interval = Vector2(0.8, 1.4)
+windup_seconds = 0.7
+staggerable = true
+burrows = true
+burrow_seconds = 1.2
+base_color = Color(0.62, 0.66, 0.72, 1)
+sheet = ExtResource("art_png")
+sheet_data = ExtResource("art_json")

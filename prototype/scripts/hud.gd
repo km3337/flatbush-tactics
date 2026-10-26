@@ -53,6 +53,7 @@ const RARITY_COLORS := {
 const GEAR_ICON_SIZE := Vector2(24, 24)
 const BATTLE_START_TEXTURE: Texture2D = preload("res://assets/ui/banners/battle_start.png")
 const ENEMY_DELETED_TEXTURE: Texture2D = preload("res://assets/ui/banners/enemy_deleted.png")
+const BATTLE_START_SFX: AudioStream = preload("res://assets/sfx/battle_start.mp3")
 ## Banners are drawn at a whole-number scale, centred on the screen.
 const BANNER_SCALE := 2
 const HIT_SPARK_SHEET: Texture2D = preload("res://assets/fx/hit_spark.png")
@@ -231,8 +232,17 @@ func show_cleared() -> void:
 ## Await it; the battle starts once it's gone.
 func show_battle_start() -> void:
     _show_banner(BATTLE_START_TEXTURE)
+    _play_sfx(BATTLE_START_SFX)
     await get_tree().create_timer(battle_start_seconds).timeout
     banner.visible = false
+
+## Fire-and-forget sound: a one-off player that frees itself when done.
+func _play_sfx(stream: AudioStream) -> void:
+    var player := AudioStreamPlayer.new()
+    player.stream = stream
+    add_child(player)
+    player.finished.connect(player.queue_free)
+    player.play()
 
 func _show_banner(texture: Texture2D) -> void:
     if banner == null:

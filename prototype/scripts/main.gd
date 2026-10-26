@@ -9,8 +9,14 @@ const BIOMES: Array[FTBiome] = [
 # Only when the battle is launched directly (no route): alternate these.
 const STOPS: Array[FTEncounter] = [
 	preload("res://encounters/test_street.tres"),
+	preload("res://encounters/test_tunnel.tres"),
 	preload("res://encounters/test_elite.tres"),
+	preload("res://encounters/dark_droid.tres"),
 ]
+
+## Battle music, looped. Elite fights and the Last Stop use ELITE_MUSIC.
+const BATTLE_MUSIC: AudioStream = preload("res://assets/music/battle_go_crazy.mp3")
+const ELITE_MUSIC: AudioStream = preload("res://assets/music/elite_synkro.mp3")
 
 const RESTART_SECONDS := 1.5
 ## After picking a reward, long enough to read its pop-up.
@@ -28,12 +34,17 @@ const GEAR_SOURCE_HEADERS := {
 }
 
 @export var biome: FTBiome = BIOMES[0]
+@export var music_volume_db := -6.0
+## When the fight ends (won or downed) the music fades out over this long.
+@export var music_fade_seconds := 3.0
+var music: AudioStreamPlayer
 @onready var weapon: FTWeapon = $Weapon
 @onready var input: FTPlayerInput = $PlayerInput
 @onready var hud: FTHud = $HUD
 @onready var cover: FTCover = $Cover
 @onready var player: FTPlayer = $Player
 @onready var biome_label: Label = $HUD/BiomeLabel
+@onready var background_art: TextureRect = $BackgroundArt
 @onready var director: FTEncounterDirector = $Enemies
 var wave_text := ""
 var is_down := false
@@ -79,13 +90,15 @@ func _ready() -> void:
 	hud.update_money(Run.money)
 	get_viewport().size_changed.connect(_center_battlefield)
 	_center_battlefield()
+	var station := Run.current_station
+	var encounter: FTEncounter = station.encounter if station and station.encounter else STOPS[Run.stop_index % STOPS.size()]
+	_start_music(encounter)
 	# BATTLE START first; enemies start arriving once it's gone.
 	is_starting = true
 	await hud.show_battle_start()
 	is_starting = false
 	Run.trigger(&"on_battle_start", [self])
-	var station := Run.current_station
-	director.start(station.encounter if station and station.encounter else STOPS[Run.stop_index % STOPS.size()])
+	director.start(encounter)
 	var extra := Run.take_extra_enemies()
 	if extra > 0:  # an event set up an ambush
 		director.add_extra_enemies(Run.STAGE_CONFIG.ambush_enemy, extra)
@@ -106,7 +119,31 @@ func _unhandled_input(event: InputEvent) -> void:
 func _set_biome(new_biome: FTBiome) -> void:
 	biome = new_biome
 	cover.apply_biome(biome)
+	# Cosmetic, so it doesn't draw from the run's seeded RNG.
+	var backdrop: FTBackdrop = biome.backdrops.pick_random() if not biome.backdrops.is_empty() else null
+	director.backdrop = backdrop
+	background_art.texture = backdrop.texture if backdrop else null
+	_center_battlefield()
 	_update_status_label()
+
+func _start_music(encounter: FTEncounter) -> void:
+	var stream := BATTLE_MUSIC
+	if encounter.tier >= FTEncounter.Tier.ELITE:
+		stream = ELITE_MUSIC
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+	music = AudioStreamPlayer.new()
+	music.stream = stream
+	music.volume_db = music_volume_db
+	add_child(music)
+	music.play()
+
+func _fade_out_music() -> void:
+	if music == null or not music.playing:
+		return
+	var tween := create_tween()
+	tween.tween_property(music, "volume_db", -60.0, music_fade_seconds).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+	tween.tween_callback(music.stop)
 
 func _update_status_label() -> void:
 	biome_label.text = "BIOME: %s   %s" % [biome.display_name.to_upper(), wave_text]
@@ -170,13 +207,25 @@ func _exit_tree() -> void:
 func _center_battlefield() -> void:
 	var visible_size := get_viewport().get_visible_rect().size
 	director.position = ((visible_size - BATTLEFIELD_SIZE) / 2.0).floor()
+	if background_art.texture:
+		var art_size := background_art.texture.get_size() * background_art.scale
+		background_art.size = background_art.texture.get_size()
+		background_art.position = ((visible_size - art_size) / 2.0).floor()
 
 func _on_enemy_spawned(enemy: FTEnemy) -> void:
 	enemy.attacked.connect(_on_enemy_attacked)
 	enemy.died.connect(_on_enemy_died.bind(enemy))
 	enemy.lob_readied.connect(_on_lob_readied.bind(enemy))
 	enemy.lob_thrown.connect(_on_lob_thrown.bind(enemy))
+	enemy.attack_cancelled.connect(_on_attack_cancelled.bind(enemy))
 	cover.track_enemy(enemy)
+
+# Countered for good: its circling / charging projectile bursts.
+func _on_attack_cancelled(enemy: FTEnemy) -> void:
+	var held = orbiting.get(enemy)
+	orbiting.erase(enemy)
+	if held != null and is_instance_valid(held) and not held.popped:
+		held.pop()
 
 # A lobbing enemy started its wind-up: the projectile appears and circles it.
 func _on_lob_readied(enemy: FTEnemy) -> void:
@@ -220,8 +269,8 @@ func _on_enemy_died(enemy: FTEnemy) -> void:
 	Run.trigger(&"on_kill", [self, enemy])
 
 func _on_wave_started(number: int, total: int) -> void:
-	var elite := director.encounter.tier == FTEncounter.Tier.ELITE
-	wave_text = "%sWAVE %d/%d" % ["ELITE " if elite else "", number, total]
+	var tier_tag: String = {FTEncounter.Tier.ELITE: "ELITE ", FTEncounter.Tier.BOSS: "BOSS "}.get(director.encounter.tier, "")
+	wave_text = "%sWAVE %d/%d" % [tier_tag, number, total]
 	_update_status_label()
 
 # Show CLEARED, pay out rewards (elite gear, then ammo), then hand back to
@@ -230,6 +279,7 @@ func _on_encounter_cleared() -> void:
 	if director.endless or is_down:
 		return
 	is_cleared = true
+	_fade_out_music()
 	_clear_projectiles()
 	var pay := Run.roll_fight_money(director.encounter)
 	Run.money += pay
@@ -286,14 +336,23 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 	# Projectiles are in front of everything: they take the shot first.
 	for lob: FTLobProjectile in projectile_layer.get_children():
 		if lob.contains(screen_position):
-			lob.pop()
 			hud.show_hit_effect(screen_position)
+			var thrower := lob.thrower()
+			if not lob.launched and thrower and thrower.type.counter_hits > 0:
+				# Takes several hits (droid or orb) to cancel: this is one.
+				thrower.register_counter_hit()
+				hud.show_counter()
+				hud.react("counter")
+				return
+			lob.pop()
 			hud.react("hit_enemy")
 			return
-	# Last in the list draws on top, so check from the back.
-	var enemies := director.enemies
-	for i in range(enemies.size() - 1, -1, -1):
-		var enemy := enemies[i]
+	# Hit the enemy drawn on top: nearest (highest z_index) first, then the
+	# latest spawned.
+	var enemies := director.enemies.duplicate()
+	enemies.reverse()
+	enemies.sort_custom(func(a: FTEnemy, b: FTEnemy): return a.z_index > b.z_index)
+	for enemy: FTEnemy in enemies:
 		if enemy.contains(screen_position):
 			var damage := Run.shot_damage(self, enemy, enemy.winding_up)
 			var countered := enemy.take_hit(damage)
@@ -332,6 +391,7 @@ func _on_player_health_changed(current: int, maximum: int) -> void:
 # Going down ends the run (Run Over screen; all gear is lost).
 func _on_player_downed() -> void:
 	is_down = true
+	_fade_out_music()
 	_clear_projectiles()
 	hud.show_down()
 	await get_tree().create_timer(RESTART_SECONDS).timeout

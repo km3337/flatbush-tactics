@@ -8,13 +8,15 @@
 [ext_resource type="Script" path="res://scripts/shops/shop.gd" id="6"]
 [ext_resource type="Resource" path="res://shops/pawn_shop.tres" id="7"]
 [ext_resource type="Resource" path="res://shops/hardware_store.tres" id="8"]
+[ext_resource type="Resource" path="res://encounters/test_tunnel.tres" id="9"]
+[ext_resource type="Resource" path="res://encounters/dark_droid.tres" id="10"]
 
 [resource]
 script = ExtResource("1")
-battle_encounters = Array[ExtResource("2")]([ExtResource("3")])
+battle_encounters = Array[ExtResource("2")]([ExtResource("3"), ExtResource("9")])
 elite_encounters = Array[ExtResource("2")]([ExtResource("4")])
 shops = Array[ExtResource("6")]([ExtResource("7"), ExtResource("8")])
-last_stop_encounter = ExtResource("4")
+last_stop_encounter = ExtResource("10")
 ambush_enemy = ExtResource("5")
 bullets = PackedStringArray("Q|#fccc0a|#000000", "B|#ff6319|#ffffff", "2|#ee352e|#ffffff", "5|#00933c|#ffffff", "G|#6cbe45|#ffffff", "A|#0039a6|#ffffff", "J|#996633|#ffffff", "7|#b933ad|#ffffff")
 station_names = PackedStringArray("Church Av", "Beverley Rd", "Cortelyou Rd", "Newkirk Plaza", "Avenue H", "Avenue J", "Avenue M", "Kings Hwy", "Parkside Av", "Prospect Park", "Sterling St", "Winthrop St", "Nostrand Av", "Flatbush Av", "President St", "Kingston Av", "Franklin Av", "Atlantic Av", "Bergen St", "7 Av", "Fort Hamilton Pkwy", "Ditmas Av", "18 Av", "Neck Rd", "Sheepshead Bay", "Brighton Beach", "Ocean Pkwy", "Rogers Av", "Empire Blvd", "Caton Av", "Albemarle Rd", "Foster Av", "Glenwood Rd", "Flatlands Av", "Avenue U", "Utica Av", "Crown Hts", "Lefferts Av", "Clarkson Av", "Linden Blvd", "Rutland Rd", "Snyder Av", "Tilden Av", "Farragut Rd", "Newkirk Av", "Dorchester Rd")

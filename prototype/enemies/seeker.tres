@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="FTEnemyType" format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/enemies/seeker.png" id="art_png"]
+[ext_resource type="JSON" path="res://assets/enemies/seeker.json" id="art_json"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Seeker"
+floats = true
+entrance = 2
+max_health = 2
+attack_interval = Vector2(3, 5)
+windup_seconds = 0.9
+staggerable = true
+arc_size = Vector2(110, 50)
+arc_speed = 0.5
+windup_tint = Color(1, 0.93, 0.2, 1)
+windup_flash = true
+base_color = Color(0.45, 0.35, 0.85, 1)
+sheet = ExtResource("art_png")
+sheet_data = ExtResource("art_json")

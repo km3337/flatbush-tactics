@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="FTEncounter" format=3]
+
+[ext_resource type="Script" path="res://scripts/encounter.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/wave.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/spawn.gd" id="3"]
+[ext_resource type="Resource" path="res://enemies/metal_snake.tres" id="4"]
+[ext_resource type="Resource" path="res://enemies/seeker.tres" id="5"]
+[ext_resource type="Resource" path="res://enemies/grunt.tres" id="6"]
+
+[sub_resource type="Resource" id="S1a"]
+script = ExtResource("3")
+enemy_type = ExtResource("4")
+slot = &"near_center"
+
+[sub_resource type="Resource" id="S1b"]
+script = ExtResource("3")
+enemy_type = ExtResource("5")
+slot = &"far_center"
+
+[sub_resource type="Resource" id="W1"]
+script = ExtResource("2")
+spawns = Array[ExtResource("3")]([SubResource("S1a"), SubResource("S1b")])
+
+[sub_resource type="Resource" id="S2a"]
+script = ExtResource("3")
+enemy_type = ExtResource("6")
+slot = &"far_left"
+
+[sub_resource type="Resource" id="S2b"]
+script = ExtResource("3")
+enemy_type = ExtResource("4")
+slot = &"far_right"
+
+[sub_resource type="Resource" id="S2c"]
+script = ExtResource("3")
+enemy_type = ExtResource("5")
+slot = &"near_right"
+
+[sub_resource type="Resource" id="W2"]
+script = ExtResource("2")
+spawns = Array[ExtResource("3")]([SubResource("S2a"), SubResource("S2b"), SubResource("S2c")])
+trigger = 1
+trigger_value = 1.0
+
+[resource]
+script = ExtResource("1")
+display_name = "Test Tunnel"
+waves = Array[ExtResource("2")]([SubResource("W1"), SubResource("W2")])

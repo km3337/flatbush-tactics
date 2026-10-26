@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FTBackdrop" format=3]
+
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/graffiti_wall.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+texture = ExtResource("2")
+ground_slots = Dictionary[StringName, Rect2]({
+&"far_center": Rect2(155, 455, 45, 75),
+&"far_left": Rect2(20, 445, 50, 85),
+&"far_right": Rect2(280, 455, 45, 75),
+&"near_center": Rect2(85, 530, 60, 100),
+&"near_right": Rect2(255, 545, 50, 85)
+})

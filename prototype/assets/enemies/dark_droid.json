@@ -1,0 +1,140 @@
+{
+ "frames": [
+  {
+   "duration": 500,
+   "filename": "dark_droid 0",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 0,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 1",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 106,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 2",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 212,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 3",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 318,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 4",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 424,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 5",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 530,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  },
+  {
+   "duration": 100,
+   "filename": "dark_droid 6",
+   "frame": {
+    "h": 69,
+    "w": 104,
+    "x": 636,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 69,
+    "w": 104
+   }
+  }
+ ],
+ "meta": {
+  "app": "flatbush cut_enemies2.gd",
+  "frameTags": [
+   {
+    "direction": "forward",
+    "from": 0,
+    "name": "idle",
+    "to": 0
+   },
+   {
+    "direction": "forward",
+    "from": 1,
+    "name": "windup",
+    "to": 6
+   }
+  ],
+  "image": "dark_droid.png",
+  "slices": [
+   {
+    "keys": [
+     {
+      "bounds": {
+       "h": 69,
+       "w": 104,
+       "x": 0,
+       "y": 0
+      },
+      "frame": 0,
+      "pivot": {
+       "x": 52,
+       "y": 69
+      }
+     }
+    ],
+    "name": "hitbox"
+   }
+  ]
+ }
+}

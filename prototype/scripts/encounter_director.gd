@@ -33,6 +33,9 @@ signal cleared
 	&"near_right": 3,
 }
 @export var encounter: FTEncounter
+## The battle's background: walkers stand on its floor (ground_slots);
+## floaters, and slots it doesn't list, use `slots` above.
+var backdrop: FTBackdrop
 ## Prototype-only: restart the encounter instead of finishing it.
 @export var endless := false
 
@@ -41,6 +44,8 @@ var pending: Array[FTSpawn] = []  # waiting for their slot to free up
 var next_wave := 0
 var wave_clock := 0.0  # seconds since the last wave arrived
 var running := false
+## Summoners past their health threshold: FTEnemy -> {summons, cooldown}.
+var summoners := {}
 
 func start(new_encounter: FTEncounter = encounter) -> void:
 	encounter = new_encounter
@@ -70,6 +75,7 @@ func _process(delta: float) -> void:
 		return
 	wave_clock += delta
 	_place_pending()
+	_update_summons(delta)
 	if next_wave < encounter.waves.size():
 		if _trigger_met(encounter.waves[next_wave]):
 			_start_next_wave()
@@ -109,19 +115,79 @@ func _place_pending() -> void:
 			pending.remove_at(i)
 			_spawn(spawn)
 
+## Where an enemy of `type` stands in `slot`: on the backdrop's floor, or in
+## the air for floaters.
+func slot_rect(slot: StringName, type: FTEnemyType) -> Rect2:
+	if not type.floats and backdrop and backdrop.ground_slots.has(slot):
+		return backdrop.ground_slots[slot]
+	return slots[slot]
+
+# Summoners at or below their health threshold keep `summon_count` summons
+# alive: the first ones arrive at once, replacements `summon_refill_seconds`
+# after one dies. Summons take free slots, furthest from the summoner first.
+func _update_summons(delta: float) -> void:
+	for e in summoners.keys():
+		if not is_instance_valid(e) or not e.alive:
+			summoners.erase(e)
+	for enemy: FTEnemy in enemies.duplicate():  # spawning adds to `enemies`
+		var t := enemy.type
+		if not enemy.alive or enemy.entering or t.summon_type == null or t.summon_count <= 0:
+			continue
+		if enemy.health > t.max_health * t.summon_below_health:
+			continue
+		var state: Dictionary = summoners.get_or_add(enemy, {"summons": [], "cooldown": 0.0})
+		state.summons = state.summons.filter(func(s): return is_instance_valid(s) and s.alive)
+		if state.summons.size() >= t.summon_count:
+			state.cooldown = t.summon_refill_seconds
+			continue
+		state.cooldown -= delta
+		if state.cooldown > 0.0:
+			continue
+		var free := slots.keys().filter(func(k: StringName):
+			return not _slot_taken(k) and not pending.any(func(s: FTSpawn): return s.slot == k))
+		if free.is_empty():
+			continue
+		var own_y := slot_rect(enemy.slot, t).end.y
+		free.sort_custom(func(a, b): return absf(slots[a].end.y - own_y) > absf(slots[b].end.y - own_y))
+		var spawn := FTSpawn.new()
+		spawn.enemy_type = t.summon_type
+		spawn.slot = free[0]
+		var summon := _spawn(spawn)
+		var arc_speed := t.summon_type.arc_speed
+		if not state.summons.is_empty() and arc_speed > 0.0:
+			# Arcing summons share one path: start on the far side from the
+			# last one so they don't stack.
+			summon.time = state.summons[-1].time + PI / arc_speed
+		state.summons.append(summon)
+
+# A burrower went underground: it rises next in a random free slot (not one
+# a waiting spawn needs). If none is free it rises where it was.
+func _on_burrowed(enemy: FTEnemy) -> void:
+	var free := slots.keys().filter(func(k: StringName):
+		return k != enemy.slot and not _slot_taken(k) and not pending.any(func(s: FTSpawn): return s.slot == k))
+	if free.is_empty():
+		return
+	var new_slot: StringName = free.pick_random()
+	enemy.slot = new_slot
+	enemy.relocate(slot_rect(new_slot, enemy.type), slot_scales.get(new_slot, 1))
+
 # Dying enemies hold their slot until they finish fading out.
 func _slot_taken(slot: StringName) -> bool:
 	return enemies.any(func(e: FTEnemy): return e.slot == slot)
 
-func _spawn(spawn: FTSpawn) -> void:
-	var rect := slots[spawn.slot]
+func _spawn(spawn: FTSpawn) -> FTEnemy:
+	var rect := slot_rect(spawn.slot, spawn.enemy_type)
 	var enemy := FTEnemy.new()
 	enemy.type = spawn.enemy_type
 	enemy.slot = spawn.slot
 	enemy.art_scale = slot_scales.get(spawn.slot, 1)
 	enemy.position = rect.position
 	enemy.size = rect.size
+	enemy.z_index = int(rect.end.y)  # lower feet = nearer = drawn in front
+	if spawn.enemy_type.burrows:
+		enemy.burrowed.connect(_on_burrowed.bind(enemy))
 	add_child(enemy)
 	enemies.append(enemy)
 	enemy.tree_exiting.connect(enemies.erase.bind(enemy))
 	enemy_spawned.emit(enemy)
+	return enemy

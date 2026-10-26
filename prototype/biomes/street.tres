@@ -1,9 +1,14 @@
 [gd_resource type="Resource" script_class="FTBiome" format=3]
 
 [ext_resource type="Script" path="res://scripts/biome.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="bdscript"]
+[ext_resource type="Resource" path="res://backdrops/city_hall_station.tres" id="bg1"]
+[ext_resource type="Resource" path="res://backdrops/graffiti_wall.tres" id="bg2"]
+[ext_resource type="Resource" path="res://backdrops/graffiti_corridor.tres" id="bg3"]
 
 [resource]
 script = ExtResource("1")
+backdrops = Array[ExtResource("bdscript")]([ExtResource("bg1"), ExtResource("bg2"), ExtResource("bg3")])
 display_name = "Street"
 cover_name = "Parked Car"
 cover_color = Color(0.16, 0.36, 0.86, 1)

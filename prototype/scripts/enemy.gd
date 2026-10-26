@@ -25,11 +25,21 @@ signal died
 ## them for the wind-up, then is thrown when they attack.
 signal lob_readied
 signal lob_thrown
+## Burrowing enemies (type.burrows): it just went underground. The director
+## moves it to another floor slot (`relocate`) before it rises again.
+signal burrowed
+## Enough counter hits landed during the wind-up: the attack won't happen
+## (its circling/charging projectile should go too).
+signal attack_cancelled
 
 const WINDUP_COLOR := Color(1.0, 0.62, 0.1)
 const STUN_COLOR := Color(0.45, 0.45, 0.5)
-## Wind-up tint for sprites whose sheet has no windup animation.
-const WINDUP_TINT := Color(1.0, 0.6, 0.25)
+## One on/off blink of a flashing wind-up (type.windup_flash).
+const FLASH_PERIOD := 0.16
+## Rise / sink time when the sheet has no emerge / burrow animation.
+const BURROW_TWEEN_SECONDS := 0.25
+## A burrower sinks this long after firing (lets the attack frame show).
+const BURROW_DELAY := 0.35
 const STATUS_COLORS := {"burn": "#ff7326", "toxic": "#73e640", "freeze": "#73ccff"}
 const GLITCH_SHADER := preload("res://shaders/glitch.gdshader")
 ## Shared stun effect, looped over the head of any stunned enemy with art.
@@ -60,7 +70,12 @@ var stars: Array[Label] = []
 var sheet: FTSpriteSheet
 var sprite: AnimatedSprite2D
 var stun_fx: AnimatedSprite2D
+var stun_fx_size := Vector2.ZERO
 var windup_speed := 1.0
+## Burrowers: between firing and rising again (sinking, underground, rising).
+var burrowing := false
+## Counter hits landed during the current wind-up.
+var counter_hits_taken := 0
 # Statuses from ammo modifiers.
 var burn_ticks_left := 0
 var burn_tick_timer := 0.0
@@ -76,6 +91,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if type.sheet and type.sheet_data:
 		_setup_sprite()
+	if type.arc_size != Vector2.ZERO:
+		# Arcs swing around the middle of the screen, whatever the slot.
+		position.x = roundf((FTBattle.BATTLEFIELD_SIZE.x - size.x) / 2.0)
 	home = position
 	time = randf() * TAU
 	health_label = Label.new()
@@ -108,15 +126,9 @@ func _ready() -> void:
 # slot, and this node's rect becomes the hitbox (what shots test against).
 func _setup_sprite() -> void:
 	sheet = FTSpriteSheet.load_sheet(type.sheet, type.sheet_data)
-	var s := float(art_scale)
-	var feet := position + Vector2(size.x / 2.0, size.y)
-	size = sheet.hitbox.size * s
-	position = (feet - (sheet.pivot - sheet.hitbox.position) * s).round()
 	sprite = AnimatedSprite2D.new()
 	sprite.sprite_frames = sheet.frames
 	sprite.centered = false
-	sprite.scale = Vector2(s, s)
-	sprite.position = -sheet.hitbox.position * s
 	var glitch := ShaderMaterial.new()
 	glitch.shader = GLITCH_SHADER
 	sprite.material = glitch
@@ -127,10 +139,39 @@ func _setup_sprite() -> void:
 		stun_fx = AnimatedSprite2D.new()
 		stun_fx.sprite_frames = fx.frames
 		stun_fx.centered = false
-		# Bottom-centre of the effect sits on top of the head (hitbox top).
-		stun_fx.position = (Vector2(size.x / 2.0, 0) - Vector2(fx.frame_size.x / 2.0, fx.frame_size.y)).round()
+		stun_fx_size = fx.frame_size
 		stun_fx.visible = false
 		add_child(stun_fx)
+	_fit_sprite(Rect2(position, size))
+
+## Sizes the sprite for `art_scale` with its feet on the bottom-centre of
+## `slot_rect`; this node's rect becomes the hitbox.
+func _fit_sprite(slot_rect: Rect2) -> void:
+	var s := float(art_scale)
+	var feet := slot_rect.position + Vector2(slot_rect.size.x / 2.0, slot_rect.size.y)
+	size = sheet.hitbox.size * s
+	position = (feet - (sheet.pivot - sheet.hitbox.position) * s).round()
+	sprite.scale = Vector2(s, s)
+	sprite.position = -sheet.hitbox.position * s
+	if stun_fx:
+		# Bottom-centre of the effect sits on top of the head (hitbox top).
+		stun_fx.position = (Vector2(size.x / 2.0, 0) - Vector2(stun_fx_size.x / 2.0, stun_fx_size.y)).round()
+
+## Moves to another slot (burrowers hop between floor slots while
+## underground).
+func relocate(slot_rect: Rect2, new_art_scale: int) -> void:
+	art_scale = new_art_scale
+	if sheet:
+		_fit_sprite(slot_rect)
+	else:
+		position = slot_rect.position
+		size = slot_rect.size
+	home = position
+	z_index = int(slot_rect.end.y)
+	pivot_offset = Vector2(size.x / 2.0, size.y)
+	health_label.size.x = size.x
+	status_label.position.y = size.y + 2
+	status_label.size.x = size.x + 20
 
 func _process(delta: float) -> void:
 	if not alive or entering:
@@ -144,14 +185,27 @@ func _process(delta: float) -> void:
 		if stun_timer <= 0.0:
 			_end_stun()
 		return
+	if burrowing:
+		return  # firing done; sinking, underground or rising
 	var frozen := freeze_timer > 0.0
 	if type.sway > 0.0 and not frozen:
 		time += delta
 		position.x = home.x + sin(time * type.sway_speed) * type.sway
+	if type.arc_size != Vector2.ZERO and not frozen:
+		time += delta
+		var p := sin(time * type.arc_speed)
+		var reach := minf(type.arc_size.x, home.x)  # stays on screen
+		position = (home + Vector2(p * reach, -p * p * type.arc_size.y)).round()
 	if sprite:
 		_update_movement_animation(frozen)
 		if winding_up:
 			sprite.speed_scale = windup_speed * (freeze_windup_speed if frozen else 1.0)
+	if winding_up and type.windup_flash:
+		var on := fmod(attack_timer, FLASH_PERIOD) > FLASH_PERIOD / 2.0
+		if sprite:
+			sprite.self_modulate = type.windup_tint if on else Color.WHITE
+		else:
+			color = type.windup_tint if on else type.base_color
 	attack_timer -= delta * (freeze_windup_speed if winding_up and frozen else 1.0)
 	if attack_timer > 0.0:
 		return
@@ -165,23 +219,27 @@ func _process(delta: float) -> void:
 		if not _play(&"attack"):
 			_play_idle()
 		_reset_attack_timer()
+		if type.burrows:
+			_burrow()
 	else:
 		winding_up = true
+		counter_hits_taken = 0
 		_set_color(WINDUP_COLOR)
 		attack_timer = type.windup_seconds
 		if type.attack == FTEnemyType.Attack.LOB:
 			lob_readied.emit()
-		if sheet and _play(&"windup"):
+		var has_windup_art := sheet != null and _play(&"windup")
+		if has_windup_art:
 			# Stretch the wind-up animation over the actual wind-up time.
 			windup_speed = sheet.length(&"windup") / maxf(type.windup_seconds, 0.01)
 			sprite.speed_scale = windup_speed
-		elif sprite:
-			# No wind-up art: tint orange so the attack can still be read and
+		if sprite and (not has_windup_art or type.windup_flash):
+			# Without wind-up art, the tint is how the attack can be read and
 			# countered.
-			sprite.self_modulate = WINDUP_TINT
+			sprite.self_modulate = type.windup_tint
 
 func contains(screen_position: Vector2) -> bool:
-	return alive and not entering and get_global_rect().has_point(screen_position)
+	return alive and not entering and not burrowing and get_global_rect().has_point(screen_position)
 
 ## A shot from the player. Spends toxic stacks for bonus damage. Returns true
 ## if the hit was a counter (landed during the wind-up).
@@ -189,15 +247,34 @@ func take_hit(damage := 1) -> bool:
 	if not alive:
 		return false
 	var countered := winding_up
-	# Only staggerable enemies lose their attack; others still fire.
-	if countered and type.staggerable:
-		winding_up = false
-		stun_timer = type.stun_seconds
-		_start_stun()
+	if countered:
+		register_counter_hit()
 	damage += toxic_stacks
 	toxic_stacks = 0
 	take_damage(damage)
 	return countered
+
+## A hit during the wind-up (on this enemy or its projectile). After
+## `type.counter_hits` of them (one for staggerable enemies by default) the
+## attack is cancelled, and staggerable enemies are stunned. Non-staggerable
+## enemies without `counter_hits` still fire. Returns true if cancelled.
+func register_counter_hit() -> bool:
+	if not winding_up:
+		return false
+	counter_hits_taken += 1
+	var needed := type.counter_hits if type.counter_hits > 0 else (1 if type.staggerable else 0)
+	if needed == 0 or counter_hits_taken < needed:
+		return false
+	winding_up = false
+	attack_cancelled.emit()
+	if type.staggerable:
+		stun_timer = type.stun_seconds
+		_start_stun()
+	else:
+		_set_color(type.base_color)
+		_play_idle()
+		_reset_attack_timer()
+	return true
 
 ## Damage that isn't a shot (burn ticks, thunder arcs): no counter, and toxic
 ## stacks are kept.
@@ -289,11 +366,17 @@ func _reset_attack_timer() -> void:
 	attack_timer = randf_range(type.attack_interval.x, type.attack_interval.y)
 
 func _update_health_label() -> void:
-	health_label.text = "●".repeat(health)
+	# Bosses would be a long row of dots: show the number instead.
+	health_label.text = "●".repeat(health) if type.max_health <= 10 else "%d/%d" % [health, type.max_health]
 
 # --- Entrance ---------------------------------------------------------------
 
 func _start_entrance() -> void:
+	if type.burrows:
+		# Burrowers always arrive by rising out of the ground.
+		_begin_entrance()
+		_emerge()
+		return
 	match type.entrance:
 		FTEnemyType.Entrance.WOBBLE:
 			_begin_entrance()
@@ -339,6 +422,45 @@ func _finish_entrance() -> void:
 	modulate = Color.WHITE
 	health_label.visible = true
 	_reset_attack_timer()  # a fair moment before the first wind-up
+
+# --- Burrowing --------------------------------------------------------------
+
+# After firing: sink, wait underground (hidden, can't be hit; the director
+# moves it to another floor slot), then rise again.
+func _burrow() -> void:
+	burrowing = true
+	var tween := create_tween()
+	tween.tween_interval(BURROW_DELAY)
+	tween.tween_callback(func(): pivot_offset = Vector2(size.x / 2.0, size.y))
+	if sheet and sheet.has(&"burrow"):
+		tween.tween_callback(_play.bind(&"burrow"))
+		tween.tween_interval(sheet.length(&"burrow"))
+	else:
+		tween.tween_property(self, "scale:y", 0.0, BURROW_TWEEN_SECONDS)
+	tween.tween_callback(func():
+		visible = false
+		burrowed.emit())
+	tween.tween_interval(type.burrow_seconds)
+	tween.tween_callback(func():
+		if alive:
+			_begin_entrance()
+			_emerge())
+
+# Rise out of the ground, then act like any arrived enemy.
+func _emerge() -> void:
+	burrowing = false
+	visible = true
+	position = home
+	var tween := create_tween()
+	if sheet and _play(&"emerge"):
+		scale = Vector2.ONE
+		tween.tween_interval(sheet.length(&"emerge"))
+	else:
+		scale = Vector2(1.0, 0.0)
+		tween.tween_property(self, "scale:y", 1.0, BURROW_TWEEN_SECONDS).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_callback(func():
+		_finish_entrance()
+		_play_idle())
 
 # --- Stun -------------------------------------------------------------------
 

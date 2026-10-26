@@ -7,6 +7,7 @@
 [resource]
 script = ExtResource("1_nfp0v")
 display_name = "Heavy"
+floats = true
 max_health = 4
 attack_interval = Vector2(3, 5.5)
 base_color = Color(0.55, 0.08, 0.14, 1)

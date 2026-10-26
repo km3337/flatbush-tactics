@@ -31,7 +31,11 @@ script = ExtResource("1")
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.08, 0.09, 0.11, 1)
+color = Color(0.145, 0.075, 0.102, 1)
+
+[node name="BackgroundArt" type="TextureRect" parent="."]
+mouse_filter = 2
+scale = Vector2(2, 2)
 
 [node name="Enemies" type="Control" parent="."]
 mouse_filter = 2
