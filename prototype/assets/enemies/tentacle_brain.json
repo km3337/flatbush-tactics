@@ -1,0 +1,106 @@
+{
+ "frames": [
+  {
+   "duration": 140,
+   "filename": "tentacle_brain 0",
+   "frame": {
+    "h": 81,
+    "w": 79,
+    "x": 0,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 81,
+    "w": 79
+   }
+  },
+  {
+   "duration": 140,
+   "filename": "tentacle_brain 1",
+   "frame": {
+    "h": 81,
+    "w": 79,
+    "x": 83,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 81,
+    "w": 79
+   }
+  },
+  {
+   "duration": 140,
+   "filename": "tentacle_brain 2",
+   "frame": {
+    "h": 81,
+    "w": 79,
+    "x": 166,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 81,
+    "w": 79
+   }
+  },
+  {
+   "duration": 140,
+   "filename": "tentacle_brain 3",
+   "frame": {
+    "h": 81,
+    "w": 79,
+    "x": 249,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 81,
+    "w": 79
+   }
+  },
+  {
+   "duration": 140,
+   "filename": "tentacle_brain 4",
+   "frame": {
+    "h": 81,
+    "w": 79,
+    "x": 332,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 81,
+    "w": 79
+   }
+  }
+ ],
+ "meta": {
+  "app": "flatbush cut.gd",
+  "frameTags": [
+   {
+    "direction": "forward",
+    "from": 0,
+    "name": "idle",
+    "to": 4
+   }
+  ],
+  "image": "tentacle_brain.png",
+  "slices": [
+   {
+    "keys": [
+     {
+      "bounds": {
+       "h": 81,
+       "w": 79,
+       "x": 0,
+       "y": 0
+      },
+      "frame": 0,
+      "pivot": {
+       "x": 39,
+       "y": 81
+      }
+     }
+    ],
+    "name": "hitbox"
+   }
+  ]
+ }
+}

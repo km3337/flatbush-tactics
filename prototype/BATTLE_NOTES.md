@@ -39,8 +39,38 @@ implements the basics listed under "In the prototype now".
   Not shown out of cover (the enemy's own tell is visible then).
 - **Player HP** is shown as pips at the top left, next to the player portrait.
   At 0 HP the battle restarts (prototype).
-- **Portrait reactions.** The portrait reacts to hitting an enemy, missing,
-  countering, killing an enemy, and getting hit, and changes at low HP.
+- **Portrait.** Three looks: idle, hurt (2 HP or less, or downed) and happy (briefly, on a counter or a kill). Other events don't change it.
+
+## Enemy placement and entrances
+
+- Spawn slots sit lower on screen than before (far +20px, near +60px). Enemy
+  art draws at 2x in far slots and 3x in near slots
+  (`FTEncounterDirector.slot_scales`), so near enemies read as right in front
+  of you. The two near slots are spread apart (centres x=115 and x=280) so
+  two 3x enemies don't stack; big ones (the 3x brain is 237px wide) can run
+  off the screen edge.
+- Each enemy type has an entrance (`FTEnemyType.entrance`):
+  - **Wobble:** grows in from the back (small, high, dim), waddling side to
+    side as it drops into its slot (1s).
+  - **Digitize:** built in place line by line, with a cyan scanline at the
+    edge (0.6s; the `reveal` uniform in `shaders/glitch.gdshader`).
+  - Rat (Grunt) and Heavy wobble; Runner and Enforcer digitize.
+- While arriving, an enemy can't be shot, hit by splash or thunder, or
+  attack; its attack timer starts fresh once it has arrived.
+
+## Lobbed attacks (the Heavy / tentacle brain)
+
+- `FTEnemyType.attack = LOB`: when the enemy starts its wind-up, a projectile
+  appears and circles it in a flattened orbit. When the wind-up ends it's
+  thrown: it arcs over the top of the screen and falls toward the player
+  over `lob_seconds` (1.5s), growing with perspective as it comes: slowly at
+  first, then fast in the last moments (6px to 56px radius).
+- It's drawn above the cover, so it's visible while ducked. One shot pops it,
+  in flight or while it's still circling. Popping it while it circles cancels
+  that attack. It fizzles if the thrower dies.
+- If it lands it deals `lob_damage` (2) **even behind cover** (gear like the
+  Bodega Cat can still absorb it). Lobbing enemies only lob.
+- Placeholder look: a pink goo blob drawn in code (`scripts/lob_projectile.gd`).
 
 ## In the prototype now
 

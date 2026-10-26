@@ -1,35 +1,33 @@
 # Art & UI checklist
 
 Placeholder art pass. Everything is drawn at 1x for the 360x780 base
-resolution (see `assets/README.md`), with Nearest filtering and integer
-scaling only.
+resolution (see `assets/README.md`), with Nearest filtering.
 
-## [ ] Placeholder sprite for a basic enemy
+## [x] Placeholder sprite for a basic enemy
 
-Replace the coloured rectangles (`FTEnemy` is a `ColorRect` today).
+Enemies with art draw an animated sprite (`FTEnemyType.sheet` +
+`sheet_data`); the rest are still coloured rectangles.
 
 - [x] Drawing template: `spritework/templates/enemy_template.aseprite`
       (64x128, lux2k palette, guides, hitbox slice with a feet pivot, tags
       for idle/windup/attack/hit/stunned/death/strafe). How to use it:
       `spritework/templates/ENEMY_TEMPLATE.md`.
-- [ ] Load enemy sheets (PNG + JSON) in `FTEnemy` instead of the rectangle.
-
-- [ ] Grunt sprite: idle pose.
-- [ ] Wind-up tell: currently the whole rect turns orange; needs a readable
-      pose/flash that still reads through the cover blur.
-- [ ] Stunned look (stars already orbit the head) and a hit flash.
-- [ ] Death (currently a 0.2s fade).
-- [ ] Fit the spawn slots: far slots are 45x75, near slots up to 60x100.
-      Pixel art can't scale down, so either one sprite per size or slots
-      resized to the sprite.
-- [ ] Heavy / Runner / Enforcer: recolours of the grunt for now?
-
-Open: who draws it (a code-generated placeholder vs. Aseprite), and the
-near/far sizing approach.
-
+- [x] Load enemy sheets (PNG + JSON) in `FTEnemy` instead of the rectangle.
+- [x] Mutated Rat (replaces the Grunt): idle, windup, attack, hit drawn.
+- [x] Stun: glitch shader on the sprite (no stun animation needed).
+- [ ] Rat: death and strafe (fall back to fade / idle until drawn). Its
+      first `stunned` frame is a copy of `hit`; the tag is ignored.
+- [ ] Shared stun effect: `assets/fx/stun_fx.png` + `.json` (stars until then).
+- [x] Placeholder art for Heavy (tentacle brain), Runner (spider) and Enforcer
+      (carnivorous flower), cut from ripped Shin Megami Tensei sheets.
+- [ ] **Replace the Shin Megami Tensei placeholders before any public
+      release** (© Atlus; see `assets/enemies/PLACEHOLDER_CREDITS.md`).
+- Enemies without windup frames tint orange while winding up.
+- Enemy art draws at 2x (far slots) / 3x (near slots) for now; the 2.5D view
+  will handle depth later.
 ## [ ] Better in-game UI (battle HUD)
 
-- [ ] Portrait + HP pips + money (top left) restyled.
+- [ ] Portrait + HP pips + money (top left) restyled. Portrait (Ali) and HP bar done; money still placeholder text.
 - [ ] Gear row and gear pop-up.
 - [ ] Ammo row (coloured rounds) + arsenal counter (bottom).
 - [ ] Wave / ELITE label; CLEARED / DOWN / AMBUSH banners.
@@ -51,19 +49,17 @@ and what stays visible during a fight.
 Open: one biome first or all three; how much the art should show of the
 player (hands, gun-fingers?).
 
-## [ ] Find a good font
+## [x] Find a good font
 
-Every screen uses Godot's default smooth font at assorted sizes (9–26),
-which clashes with the pixel art.
+Nokia Cellphone FC (`assets/fonts/nokiafc22.ttf`, from fatorcaos.com.br) is
+the project's default theme font, imported with antialiasing off, hinting
+none and subpixel positioning off. It's drawn on an 8px grid (7px capitals),
+so every text size is 8, 16, 24, 32, 40, 56 or 240.
 
-- [ ] Pick a pixel font: an existing one (m5x7, m6x11, Pixel Operator...)
-      or draw one. In Aseprite, a white glyph grid can be imported as
-      "Font Data (Image Font)" (fixed width), or use BitFontMaker2 for a
-      variable-width .ttf.
-- [ ] Set it as the project's default theme font, with antialiasing off,
-      hinting none and subpixel positioning off.
-- [ ] Replace the assorted font sizes with the font's native size and whole
-      multiples of it (e.g. 8 / 16).
+- [ ] Symbols the font doesn't have fall back to a system font and look
+      off: ● (enemy HP), ■ □ (player HP), ★ (stun), ▮ (ammo row), ✕ (hit
+      marker). Draw these as sprites or shapes.
+- [ ] Check the font's licence before shipping.
 - Big titles (like SELECT LANCER) stay hand-drawn images.
 
 ## [ ] Low-colour sprites for basic gear

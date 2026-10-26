@@ -2,7 +2,7 @@ class_name FTRouteScreen
 extends Control
 
 ## Between stops: an MTA countdown-style screen showing where you are, the
-## stops ahead on your line, and your HP / gear / arsenal. CONTINUE (or Space /
+## stops ahead on your line, and your HP / gear / arsenal. NEXT STOP (or Space /
 ## Enter) leaves for the next stop.
 
 @onready var welcome: Label = %Welcome
@@ -19,8 +19,7 @@ func _ready() -> void:
 	status.text = "HP %d/%d   $%d   GEAR %d   ARSENAL %d/%d" % [Run.current_hp(), Run.max_hp(), Run.money, Run.gear.size(), Run.arsenal.size(), Run.arsenal_capacity()]
 	destination.text = "to %s" % Run.stage.last_stop.display_name
 	bullet.draw.connect(func(): FTStopIcons.draw_bullet(bullet, line, bullet.size / 2.0, 20.0))
-	var next := Run.upcoming_station()
-	continue_button.text = "CONTINUE TO %s" % next.display_name.to_upper()
+	continue_button.text = "NEXT STOP"
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var style := StyleBoxFlat.new()
 		style.bg_color = line.color.lightened(0.1) if state == "hover" else line.color

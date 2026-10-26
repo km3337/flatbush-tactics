@@ -9,7 +9,7 @@ static func explode(battle: FTBattle, enemy: FTEnemy, radius: float, damage: int
 	var center := enemy.get_global_rect().get_center()
 	_draw_blast(battle, center, radius, color)
 	for other in battle.director.enemies.duplicate():
-		if other != enemy and other.alive and center.distance_to(other.get_global_rect().get_center()) <= radius:
+		if other != enemy and other.alive and not other.entering and center.distance_to(other.get_global_rect().get_center()) <= radius:
 			other.take_damage(damage)
 
 # Placeholder blast: a ring that grows and fades.

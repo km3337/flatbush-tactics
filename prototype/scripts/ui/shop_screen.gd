@@ -49,8 +49,8 @@ func _ready() -> void:
 	header.size = Vector2(360, 34)
 	frame.add_child(header)
 	var where := Run.current_station.display_name.to_upper() if Run.current_station else ""
-	_label(header, "$  %s" % where, Vector2(12, 0), Vector2(200, 34), 12, Color.WHITE)
-	status_label = _label(header, "", Vector2(150, 0), Vector2(198, 34), 11, Color.WHITE)
+	_label(header, "$  %s" % where, Vector2(12, 0), Vector2(200, 34), 8, Color.WHITE)
+	status_label = _label(header, "", Vector2(150, 0), Vector2(198, 34), 8, Color.WHITE)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 	# Art goes here later.
@@ -59,22 +59,22 @@ func _ready() -> void:
 	art.position = Vector2(20, 46)
 	art.size = Vector2(320, 100)
 	frame.add_child(art)
-	var mark := _label(art, "$", Vector2.ZERO, art.size, 60, Color(1, 1, 1, 0.12))
+	var mark := _label(art, "$", Vector2.ZERO, art.size, 64, Color(1, 1, 1, 0.12))
 	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label(frame, shop.display_name.to_upper(), Vector2(20, 154), Vector2(320, 28), 20, Color(1.0, 0.85, 0.2))
-	_label(frame, shop.greeting, Vector2(20, 184), Vector2(320, 44), 11, Color.WHITE).vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label(frame, shop.display_name.to_upper(), Vector2(20, 154), Vector2(320, 28), 16, Color(1.0, 0.85, 0.2))
+	_label(frame, shop.greeting, Vector2(20, 184), Vector2(320, 44), 8, Color.WHITE).vertical_alignment = VERTICAL_ALIGNMENT_TOP
 
 	for i in stock.size():
 		_item_row(i, stock[i])
 	_heal_row(stock.size())
-	message_label = _label(frame, "", Vector2(20, ROW_TOP + (stock.size() + 1) * ROW_HEIGHT + 4), Vector2(320, 40), 12, ACCENT)
+	message_label = _label(frame, "", Vector2(20, ROW_TOP + (stock.size() + 1) * ROW_HEIGHT + 4), Vector2(320, 40), 8, ACCENT)
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	leave_button = Button.new()
 	leave_button.text = "LEAVE"
 	leave_button.focus_mode = Control.FOCUS_NONE
 	leave_button.position = Vector2(40, 730)
 	leave_button.size = Vector2(280, 38)
-	leave_button.add_theme_font_size_override("font_size", 14)
+	leave_button.add_theme_font_size_override("font_size", 16)
 	leave_button.pressed.connect(_leave)
 	frame.add_child(leave_button)
 	_refresh()
@@ -109,9 +109,9 @@ func _item_row(i: int, item: Resource) -> void:
 	icon.size = Vector2(36, 36)
 	icon.draw.connect(func(): _draw_item_icon(icon, item))
 	frame.add_child(icon)
-	_label(frame, "%d  %s" % [i + 1, item.display_name.to_upper()], Vector2(66, y), Vector2(190, 18), 13, Color.WHITE)
-	_label(frame, FTGear.Rarity.keys()[item.rarity], Vector2(66, y + 17), Vector2(190, 12), 8, RARITY_COLORS[item.rarity])
-	_label(frame, item.description, Vector2(66, y + 29), Vector2(190, 32), 9, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label(frame, "%d  %s" % [i + 1, item.display_name.to_upper()], Vector2(66, y), Vector2(190, 10), 8, Color.WHITE)
+	_label(frame, FTGear.Rarity.keys()[item.rarity], Vector2(66, y + 12), Vector2(190, 10), 8, RARITY_COLORS[item.rarity])
+	_label(frame, item.description, Vector2(66, y + 27), Vector2(190, 32), 8, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_buy_button(y, _buy.bind(i))
 
 func _heal_row(i: int) -> void:
@@ -121,10 +121,10 @@ func _heal_row(i: int) -> void:
 	icon.size = Vector2(36, 36)
 	icon.draw.connect(func():
 		icon.draw_rect(Rect2(Vector2.ZERO, icon.size), Color(0.75, 0.25, 0.25))
-		icon.draw_string(get_theme_default_font(), Vector2(0, 25), "+HP", HORIZONTAL_ALIGNMENT_CENTER, 36, 12, Color.WHITE))
+		icon.draw_string(get_theme_default_font(), Vector2(0, 25), "+HP", HORIZONTAL_ALIGNMENT_CENTER, 36, 8, Color.WHITE))
 	frame.add_child(icon)
-	_label(frame, "%d  %s" % [i + 1, shop.heal_name.to_upper()], Vector2(66, y), Vector2(190, 18), 13, Color.WHITE)
-	_label(frame, "Restores %d HP. Buy as many as you need." % shop.heal_amount, Vector2(66, y + 20), Vector2(190, 30), 9, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_label(frame, "%d  %s" % [i + 1, shop.heal_name.to_upper()], Vector2(66, y), Vector2(190, 18), 8, Color.WHITE)
+	_label(frame, "Restores %d HP. Buy as many as you need." % shop.heal_amount, Vector2(66, y + 20), Vector2(190, 30), 8, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_buy_button(y, _buy_heal)
 
 func _buy_button(y: float, action: Callable) -> void:
@@ -132,7 +132,7 @@ func _buy_button(y: float, action: Callable) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.position = Vector2(262, y + 12)
 	button.size = Vector2(78, 30)
-	button.add_theme_font_size_override("font_size", 12)
+	button.add_theme_font_size_override("font_size", 8)
 	button.pressed.connect(action)
 	frame.add_child(button)
 	buy_buttons.append(button)
@@ -146,7 +146,7 @@ func _draw_item_icon(canvas: Control, item: Resource) -> void:
 		canvas.draw_texture_rect(item.icon, inner, false)
 		return
 	canvas.draw_rect(inner, item.color)
-	canvas.draw_string(get_theme_default_font(), Vector2(3, 23), item.abbreviation, HORIZONTAL_ALIGNMENT_CENTER, inner.size.x, 12, Color.WHITE)
+	canvas.draw_string(get_theme_default_font(), Vector2(3, 23), item.abbreviation, HORIZONTAL_ALIGNMENT_CENTER, inner.size.x, 8, Color.WHITE)
 
 ## Prices, SOLD and affordability on every button, plus the header.
 func _refresh() -> void:

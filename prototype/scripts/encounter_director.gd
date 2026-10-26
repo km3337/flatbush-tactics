@@ -12,15 +12,25 @@ signal wave_started(number: int, total: int)
 signal cleared
 
 ## Where enemies can stand inside the 360x640 battlefield, above the
-## instructions/ammo band at the bottom. Far slots reach into the top 35% that
-## stays visible (blurred) while in cover; near slots are fully behind the
-## cover. Rect size fakes depth (near = bigger).
+## instructions/ammo band at the bottom. Enemies with art stand with their
+## feet on the bottom-centre of the slot. Far slots reach into the top 35%
+## that stays visible (blurred) while in cover; near slots are behind the
+## cover. Rect size fakes depth for enemies without art (near = bigger).
 @export var slots: Dictionary[StringName, Rect2] = {
-	&"far_left": Rect2(20, 164, 50, 85),
-	&"far_center": Rect2(155, 142, 45, 75),
-	&"far_right": Rect2(280, 178, 45, 75),
-	&"near_center": Rect2(145, 334, 60, 100),
-	&"near_right": Rect2(260, 370, 50, 85),
+	&"far_left": Rect2(20, 184, 50, 85),
+	&"far_center": Rect2(155, 162, 45, 75),
+	&"far_right": Rect2(280, 198, 45, 75),
+	&"near_center": Rect2(85, 394, 60, 100),
+	&"near_right": Rect2(255, 430, 50, 85),
+}
+## Whole-number scale for enemy art per slot (missing = 1): far slots draw
+## at 2x, near slots at 3x so enemies there read as right in front of you.
+@export var slot_scales: Dictionary[StringName, int] = {
+	&"far_left": 2,
+	&"far_center": 2,
+	&"far_right": 2,
+	&"near_center": 3,
+	&"near_right": 3,
 }
 @export var encounter: FTEncounter
 ## Prototype-only: restart the encounter instead of finishing it.
@@ -108,6 +118,7 @@ func _spawn(spawn: FTSpawn) -> void:
 	var enemy := FTEnemy.new()
 	enemy.type = spawn.enemy_type
 	enemy.slot = spawn.slot
+	enemy.art_scale = slot_scales.get(spawn.slot, 1)
 	enemy.position = rect.position
 	enemy.size = rect.size
 	add_child(enemy)

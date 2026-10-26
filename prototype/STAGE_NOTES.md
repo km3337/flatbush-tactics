@@ -80,7 +80,7 @@ Line Select → Transit → Encounter → Route screen → Transit → … → L
    Stage Clear (going down → Run Over → New Run).
    - Route screen (`scenes/Route.tscn`): countdown-screen style, with the
      current stop in a white pill, "Previous stops" chevrons, icons, transfer
-     bullets, orange detour rows, and HP / gear / arsenal. CONTINUE (or
+     bullets, orange detour rows, and HP / gear / arsenal. NEXT STOP (or
      Space/Enter) leaves.
    - Transit (`scenes/Transit.tscn`): a placeholder window and LED "Next Stop"
      sign (blinking SERVICE CHANGE on detours), then doors opening; tap to

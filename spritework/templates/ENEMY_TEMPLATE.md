@@ -55,12 +55,27 @@ length per enemy type), so the frame durations are a starting point.
 From the project folder, one sheet plus data per enemy (guides left out):
 
 ```
-aseprite -b spritework/grunt.aseprite --ignore-layer _guides --sheet prototype/assets/enemies/grunt.png --sheet-type horizontal --data prototype/assets/enemies/grunt.json --format json-array --list-tags --list-slices
+aseprite -b --ignore-layer _guides spritework/Mutated_Rat/enemy_template.aseprite --sheet prototype/assets/enemies/mutated_rat.png --sheet-type horizontal --shape-padding 4 --data prototype/assets/enemies/mutated_rat.json --format json-array --list-tags --list-slices
 ```
 
-The JSON keeps the tags (animations) and the hitbox slice with its pivot, so
-the game can read both. (Hooking enemies up to these sheets is still to do:
-`FTEnemy` is a coloured rectangle today.)
+`--ignore-layer` must come **before** the file name, or Aseprite ignores it.
+
+The JSON keeps the tags (animations) and the hitbox slice with its pivot.
+Point an enemy type at it (`sheet` + `sheet_data` on its `enemies/*.tres`)
+and the game uses it.
+
+## What the game does with it
+
+- An animation counts only if **every** frame has art. A half-drawn tag is
+  skipped (so it never blinks out): missing ones fall back to `idle`, and a
+  missing `death` falls back to a fade.
+- `windup` is stretched to the enemy's wind-up time.
+- `stunned` is optional. Without it, the enemy holds its `hit` pose, glitches
+  (`shaders/glitch.gdshader`) and shows the shared stun effect over its head.
+- **Stun effect:** one shared looping animation for every enemy. Draw it in its
+  own file and export it to `prototype/assets/fx/stun_fx.png` + `stun_fx.json`
+  (same command, no tags needed). The game picks it up automatically, with its
+  bottom-centre on top of the hitbox. Until then: placeholder stars.
 
 ## For 2.5D later
 

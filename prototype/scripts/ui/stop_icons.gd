@@ -24,7 +24,7 @@ static func draw(canvas: CanvasItem, station: FTStation, pos: Vector2, alpha := 
 			_sword(canvas, pos, -1.0, red)
 		FTStation.Kind.EVENT, FTStation.Kind.SHOP:
 			var text := "?" if station.kind == FTStation.Kind.EVENT else "$"
-			canvas.draw_string(canvas.get_theme_default_font(), pos + Vector2(-10, 5), text, HORIZONTAL_ALIGNMENT_CENTER, 20, 14, ink)
+			canvas.draw_string(canvas.get_theme_default_font(), pos + Vector2(-10, 4), text, HORIZONTAL_ALIGNMENT_CENTER, 20, 8, ink)  # 7px caps, centred
 		FTStation.Kind.LAST_STOP:
 			canvas.draw_rect(Rect2(pos - Vector2(5, 5), Vector2(10, 10)), ink)
 
@@ -36,8 +36,8 @@ static func draw_cone(canvas: CanvasItem, pos: Vector2, alpha := 1.0) -> void:
 ## A route bullet: coloured circle with the line's letter/number.
 static func draw_bullet(canvas: CanvasItem, line: FTLine, pos: Vector2, radius: float, alpha := 1.0) -> void:
 	canvas.draw_circle(pos, radius, Color(line.color, alpha))
-	var size := int(radius * 1.15)
-	canvas.draw_string(canvas.get_theme_default_font(), pos + Vector2(-radius, size * 0.38), line.bullet, HORIZONTAL_ALIGNMENT_CENTER, radius * 2, size, Color(line.text_color, alpha))
+	var size := 16 if radius >= 12.0 else 8  # the font's 8px grid
+	canvas.draw_string(canvas.get_theme_default_font(), pos + Vector2(-radius, roundf(size * 0.4375)), line.bullet, HORIZONTAL_ALIGNMENT_CENTER, radius * 2, size, Color(line.text_color, alpha))
 
 # Diagonal blade with a crossguard; `flip` mirrors it for crossed swords.
 static func _sword(canvas: CanvasItem, pos: Vector2, flip: float, color: Color) -> void:

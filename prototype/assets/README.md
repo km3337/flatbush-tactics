@@ -68,9 +68,9 @@ When Godot gets focus it imports new PNGs automatically. For crisp pixels:
 - Per texture (Import dock, then *Reimport*): Mipmaps off, Compress Mode *Lossless*. Both are the defaults for 2D.
 - Exporting the same file again overwrites the PNG, and Godot reimports it. Nodes that use it update without any re-linking.
 
-> **Scaling.** The game scales by whole numbers only (`window/stretch/scale_mode = "integer"`), so every art pixel is the same size on screen: 2x, 3x and so on. With the `expand` aspect, leftover window space becomes extra visible area rather than stretched pixels. Avoid placing art at fractional positions or scales (e.g. `position = 10.5`, `scale = 1.5`) or pixels will look uneven.
+> **Scaling.** The window opens as large as the screen allows and the game scales to fit exactly (`window/stretch/scale_mode = "fractional"`), e.g. about 1.27x on a 1080p monitor. At non-whole scales some art pixels come out 1px bigger than others, so the art is slightly uneven on screen; it is still drawn at 1x. With the `expand` aspect, leftover window space becomes extra visible area.
 >
-> **2.5D later.** Integer scaling covers 2D. 3D scenes render at the window's full resolution, so pixel-art 3D will need its own low-res pass: render the 3D world into a `SubViewport` at 360x780 (Nearest filter) and show it on screen. Then sprites, 3D and UI all share one pixel grid.
+> **2.5D later.** 3D scenes render at the window's full resolution, so pixel-art 3D will need its own low-res pass: render the 3D world into a `SubViewport` at 360x780 (Nearest filter) and show it on screen. Then sprites, 3D and UI all share one pixel grid.
 
 ## 5. Using art in the UI
 
@@ -87,10 +87,11 @@ Swap placeholder nodes for textured ones. Keep the node names so `hud.gd` still 
 
 ### Example: portrait
 
-1. Draw `art/ui/portrait.aseprite` at 65x65, one tag per mood (`calm`, `hurting`, `nice`, `missed`, `yeah`, `got_em`, `ouch`, `down`), matching the `PORTRAIT_STATES` keys in `hud.gd`.
-2. Export a horizontal sheet to `prototype/assets/ui/portrait_sheet.png`.
-3. In `Main.tscn`, replace `HUD/Portrait` (ColorRect) with a TextureRect or AnimatedSprite2D using that sheet.
-4. In `hud.gd` `_set_portrait`, show the frame or animation for the state instead of setting `text` and `color`.
+Ali's HUD portrait is `spritework/UI/player_hurt_RECOVERED.aseprite`: 64x64, frame 1 idle, frame 2 hurt, frame 3 happy (the frame per state is `PORTRAIT_STATES` in `hud.gd`). After editing it, re-export the strip:
+
+```
+aseprite -b --ignore-layer _reference --ignore-layer _guides spritework/UI/player_hurt_RECOVERED.aseprite --sheet prototype/assets/ui/hud/portrait_ali.png --sheet-type horizontal
+```
 
 ## 6. Git
 

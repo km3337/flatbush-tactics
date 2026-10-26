@@ -1,15 +1,17 @@
 extends Node
 
-## Desktop only (autoload). Sizes the window to the largest whole-number
-## multiple of the base resolution that fits the monitor, centred, so pixels
-## stay square with integer scaling. Re-fits when the monitor changes shape
-## (e.g. rotated to portrait) or the window moves to another monitor; manual
-## resizes are left alone. Phones and web fill the screen on their own.
+## Desktop only (autoload). Opens the window as large as the monitor allows
+## while keeping the game's portrait shape: it fills the usable screen height
+## (title bar and taskbar included) and the game scales to fit exactly. The
+## scale isn't a whole number (e.g. ~1.3x on a 1080p monitor), so some art
+## pixels come out 1px bigger than others. Re-fits when the monitor changes
+## shape (e.g. rotated to portrait) or the window moves to another monitor;
+## manual resizes are left alone. Phones and web fill the screen on their own.
 
 ## How often to check the monitor, in seconds.
 const CHECK_SECONDS := 0.5
 
-var base_size := Vector2i(
+var base_size := Vector2(
 	ProjectSettings.get_setting("display/window/size/viewport_width"),
 	ProjectSettings.get_setting("display/window/size/viewport_height"))
 var screen := -1
@@ -38,7 +40,14 @@ func _check_screen() -> void:
 func _fit() -> void:
 	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
 		return
-	var scale := maxi(1, mini(screen_rect.size.x / base_size.x, screen_rect.size.y / base_size.y))
-	var size := base_size * scale
+	# Leave room for the title bar and borders.
+	var decorations := DisplayServer.window_get_size_with_decorations() - DisplayServer.window_get_size()
+	var room := Vector2(screen_rect.size - decorations)
+	var scale := minf(room.x / base_size.x, room.y / base_size.y)
+	var size := Vector2i((base_size * scale).floor())
 	DisplayServer.window_set_size(size)
-	DisplayServer.window_set_position(screen_rect.position + (screen_rect.size - size) / 2)
+	# Centre the whole window (borders included). Positions set the client
+	# area, which sits this far inside the outer frame (title bar on top).
+	var inset := DisplayServer.window_get_position() - DisplayServer.window_get_position_with_decorations()
+	var outer := size + decorations
+	DisplayServer.window_set_position(screen_rect.position + (screen_rect.size - outer) / 2 + inset)

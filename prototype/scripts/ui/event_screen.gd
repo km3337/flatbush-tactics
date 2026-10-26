@@ -40,8 +40,8 @@ func _ready() -> void:
 	frame.add_child(header)
 	var where := Run.current_station.display_name.to_upper() if Run.current_station else ""
 	var detour := Run.current_station and Run.current_station not in Run.current_line().stations
-	_label(header, "?  %s%s" % ["DETOUR · " if detour else "", where], Vector2(12, 0), Vector2(220, 34), 12)
-	status_label = _label(header, "", Vector2(150, 0), Vector2(198, 34), 11)
+	_label(header, "?  %s%s" % ["DETOUR · " if detour else "", where], Vector2(12, 0), Vector2(220, 34), 8)
+	status_label = _label(header, "", Vector2(150, 0), Vector2(198, 34), 8)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_update_status()
 
@@ -54,11 +54,11 @@ func _ready() -> void:
 	var art_mark := _label(art, "?", Vector2.ZERO, art.size, 64)
 	art_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	art_mark.add_theme_color_override("font_color", Color(1, 1, 1, 0.15))
-	var title := _label(frame, event.title.to_upper(), Vector2(20, 184), Vector2(320, 30), 20)
+	var title := _label(frame, event.title.to_upper(), Vector2(20, 184), Vector2(320, 30), 16)
 	title.add_theme_color_override("font_color", ACCENT)
-	text_label = _label(frame, event.text, Vector2(20, 220), Vector2(320, 190), 12)
+	text_label = _label(frame, event.text, Vector2(20, 220), Vector2(320, 190), 8)
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	effects_label = _label(frame, "", Vector2(20, 412), Vector2(320, 90), 13)
+	effects_label = _label(frame, "", Vector2(20, 412), Vector2(320, 90), 8)
 	effects_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 
 	for i in event.choices.size():
@@ -87,7 +87,7 @@ func _button(text: String, pos: Vector2) -> Button:
 	button.focus_mode = Control.FOCUS_NONE
 	button.position = pos
 	button.size = Vector2(300, 44)
-	button.add_theme_font_size_override("font_size", 13)
+	button.add_theme_font_size_override("font_size", 8)
 	frame.add_child(button)
 	return button
 

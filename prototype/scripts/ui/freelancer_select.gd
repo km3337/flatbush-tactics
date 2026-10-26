@@ -86,14 +86,14 @@ func _ready() -> void:
 	frame.add_child(info)
 	var name_row := HBoxContainer.new()
 	info.add_child(name_row)
-	name_label = _label(name_row, "", Vector2.ZERO, Vector2.ZERO, 26, INK)
+	name_label = _label(name_row, "", Vector2.ZERO, Vector2.ZERO, 24, INK)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	weapon_label = _label(name_row, "", Vector2.ZERO, Vector2.ZERO, 11, ACCENT)
+	weapon_label = _label(name_row, "", Vector2.ZERO, Vector2.ZERO, 8, ACCENT)
 	weapon_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	weapon_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	weapon_label.size_flags_vertical = Control.SIZE_FILL
-	bio_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 10, INK)
+	bio_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 8, INK)
 	var gear_row := HBoxContainer.new()
 	gear_row.add_theme_constant_override("separation", 8)
 	info.add_child(gear_row)
@@ -102,16 +102,16 @@ func _ready() -> void:
 	gear_icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	gear_icon.draw.connect(_draw_gear_icon)
 	gear_row.add_child(gear_icon)
-	gear_label = _label(gear_row, "", Vector2.ZERO, Vector2.ZERO, 10, INK)
+	gear_label = _label(gear_row, "", Vector2.ZERO, Vector2.ZERO, 8, INK)
 	gear_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 10, INK)
-	rounds_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 10, INK)
+	stats_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 8, INK)
+	rounds_label = _label(info, "", Vector2.ZERO, Vector2.ZERO, 8, INK)
 	choose_button = Button.new()
 	choose_button.focus_mode = Control.FOCUS_NONE
 	choose_button.position = Vector2(40, 740)
 	choose_button.size = Vector2(280, 34)
-	choose_button.add_theme_font_size_override("font_size", 14)
 	choose_button.pressed.connect(_choose)
+	choose_button.draw.connect(_draw_check)
 	frame.add_child(choose_button)
 	_show(0, 0)
 
@@ -171,7 +171,7 @@ func _show(new_index: int, direction: int) -> void:
 		gear_label.text = "%s: %s" % [gear.display_name.to_upper(), gear.description] if gear else "STARTING GEAR: RANDOM COMMON"
 		stats_label.text = "HP %d · MAG %d · SHOT %.1fs · RELOAD %.2fs · ARSENAL %d/%d" % [f.max_health, f.magazine_size, f.fire_cooldown, f.reload_seconds, f.starting_arsenal.size(), f.arsenal_capacity]
 		rounds_label.text = "ROUNDS: " + _rounds_text(f.starting_arsenal)
-		choose_button.text = "CHOOSE %s" % f.display_name.to_upper()
+		choose_button.tooltip_text = "Choose %s" % f.display_name
 		choose_button.disabled = false
 	else:
 		name_label.text = "???"
@@ -180,8 +180,9 @@ func _show(new_index: int, direction: int) -> void:
 		gear_label.text = ""
 		stats_label.text = ""
 		rounds_label.text = ""
-		choose_button.text = "LOCKED"
+		choose_button.tooltip_text = "Locked"
 		choose_button.disabled = true
+	choose_button.queue_redraw()
 	gear_icon.visible = f != null and f.starting_gear != null
 	gear_icon.queue_redraw()
 	if direction != 0:
@@ -213,7 +214,18 @@ func _draw_gear_icon() -> void:
 		gear_icon.draw_texture_rect(gear.icon, inner, false)
 		return
 	gear_icon.draw_rect(inner, gear.color)
-	gear_icon.draw_string(get_theme_default_font(), Vector2(2, 16), gear.abbreviation, HORIZONTAL_ALIGNMENT_CENTER, inner.size.x, 9, Color.WHITE)
+	gear_icon.draw_string(get_theme_default_font(), Vector2(2, 16), gear.abbreviation, HORIZONTAL_ALIGNMENT_CENTER, inner.size.x, 8, Color.WHITE)
+
+# The CHOOSE button's label: a pixel check mark (the font has no ✓), greyed
+# out on locked slots.
+func _draw_check() -> void:
+	var c := (choose_button.size / 2.0).floor()
+	var points := PackedVector2Array([c + Vector2(-12, 0), c + Vector2(-4, 8), c + Vector2(12, -8)])
+	if choose_button.disabled:
+		choose_button.draw_polyline(points, Color(0.55, 0.54, 0.52), 4.0)
+		return
+	choose_button.draw_polyline(points, Color(0.06, 0.05, 0.08), 8.0)
+	choose_button.draw_polyline(points, Color.WHITE, 4.0)
 
 func _choose() -> void:
 	var f := current()

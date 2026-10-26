@@ -27,12 +27,19 @@ window/size/viewport_width=360
 window/size/viewport_height=780
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/stretch/scale_mode="integer"
 window/handheld/orientation=1
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot_mcp_toolkit/plugin.cfg")
+
+[gui]
+
+theme/default_font_antialiasing=0
+theme/default_font_hinting=0
+theme/default_font_subpixel_positioning=0
+theme/custom_font="res://assets/fonts/nokiafc22.ttf"
+theme/custom_font_size=8
 
 [input]
 

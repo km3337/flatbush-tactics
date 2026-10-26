@@ -84,15 +84,15 @@ func _draw() -> void:
 	var blink := fmod(time, 0.5) < 0.3
 	if detour:
 		if blink:
-			draw_string(font, sign.position + Vector2(14, 30), "SERVICE CHANGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, LED_RED)
-		draw_string(font, sign.position + Vector2(14, 58), "Detour via", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, LED_ORANGE)
+			draw_string(font, sign.position + Vector2(14, 30), "SERVICE CHANGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, LED_RED)
+		draw_string(font, sign.position + Vector2(14, 58), "Detour via", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, LED_ORANGE)
 	else:
-		draw_string(font, sign.position + Vector2(14, 30), "Next Stop", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, LED_RED)
-	draw_string(font, sign.position + Vector2(14, 84), station.display_name, HORIZONTAL_ALIGNMENT_LEFT, 260, 18, LED_ORANGE)
+		draw_string(font, sign.position + Vector2(14, 30), "Next Stop", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, LED_RED)
+	draw_string(font, sign.position + Vector2(14, 84), station.display_name, HORIZONTAL_ALIGNMENT_LEFT, 260, 16, LED_ORANGE)
 	FTStopIcons.draw(self, station, sign.position + Vector2(296, 78), 1.0, LED_ORANGE)
 	if station.is_transfer() and station.kind != FTStation.Kind.LAST_STOP and not detour:
 		var other: int = station.line_indices[0] if station.line_indices[1] == Run.line_index else station.line_indices[1]
-		draw_string(font, sign.position + Vector2(14, 106), "Transfer to the %s" % Run.stage.lines[other].bullet, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, LED_GREEN)
+		draw_string(font, sign.position + Vector2(14, 106), "Transfer to the %s" % Run.stage.lines[other].bullet, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, LED_GREEN)
 	# Doors: closed during the ride, sliding open at the end.
 	var open := clampf((time - RIDE_SECONDS) / DOORS_SECONDS, 0.0, 1.0)
 	if open > 0.0:
@@ -102,7 +102,7 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2(-shift, 0), Vector2(half, size.y)), door)
 		draw_rect(Rect2(Vector2(half + shift, 0), Vector2(half, size.y)), door)
 		if open < 0.6:
-			draw_string(font, Vector2(0, size.y / 2.0), "DOORS OPENING", HORIZONTAL_ALIGNMENT_CENTER, size.x, 18, Color(0.1, 0.1, 0.12))
+			draw_string(font, Vector2(0, size.y / 2.0), "DOORS OPENING", HORIZONTAL_ALIGNMENT_CENTER, size.x, 16, Color(0.1, 0.1, 0.12))
 
 func _arrive() -> void:
 	arrived = true
@@ -136,7 +136,7 @@ func _show_transfer_prompt(other: int) -> void:
 		button.focus_mode = Control.FOCUS_NONE
 		button.position = Vector2(16, 80 + i * 104)
 		button.size = Vector2(308, 92)
-		button.add_theme_font_size_override("font_size", 11)
+		button.add_theme_font_size_override("font_size", 8)
 		var verb := "STAY ON THE %s" if i == 0 else "TRANSFER TO THE %s"
 		button.text = "%d  %s\n%s" % [i + 1, verb % line.bullet, Run.stage.summary(options[i], depth)]
 		for state in ["normal", "hover", "pressed"]:

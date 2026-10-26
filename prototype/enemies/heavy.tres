@@ -1,6 +1,8 @@
 [gd_resource type="Resource" script_class="FTEnemyType" format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1_nfp0v"]
+[ext_resource type="Texture2D" path="res://assets/enemies/tentacle_brain.png" id="art_png"]
+[ext_resource type="JSON" path="res://assets/enemies/tentacle_brain.json" id="art_json"]
 
 [resource]
 script = ExtResource("1_nfp0v")
@@ -8,3 +10,9 @@ display_name = "Heavy"
 max_health = 4
 attack_interval = Vector2(3, 5.5)
 base_color = Color(0.55, 0.08, 0.14, 1)
+entrance = 1
+sheet = ExtResource("art_png")
+sheet_data = ExtResource("art_json")
+attack = 1
+lob_seconds = 1.5
+lob_damage = 2

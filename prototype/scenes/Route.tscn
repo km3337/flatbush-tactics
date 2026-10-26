@@ -44,7 +44,7 @@ offset_left = 14.0
 offset_top = 8.0
 offset_right = 350.0
 offset_bottom = 38.0
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "Welcome to Church Av"
 vertical_alignment = 1
 clip_text = true
@@ -62,7 +62,7 @@ layout_mode = 0
 offset_left = 14.0
 offset_right = 140.0
 offset_bottom = 22.0
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 8
 text = "Next train"
 vertical_alignment = 1
 
@@ -72,7 +72,7 @@ layout_mode = 0
 offset_left = 120.0
 offset_right = 350.0
 offset_bottom = 22.0
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 8
 text = "HP 5/5   GEAR 1   ARSENAL 13/20"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -93,7 +93,7 @@ offset_left = 74.0
 offset_top = 76.0
 offset_right = 350.0
 offset_bottom = 102.0
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "to Last Stop"
 
 [node name="StoppingAt" type="Label" parent="Frame"]
@@ -103,7 +103,7 @@ offset_top = 102.0
 offset_right = 350.0
 offset_bottom = 118.0
 theme_override_colors/font_color = Color(0.6, 0.66, 0.8, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 8
 text = "Stopping at"
 
 [node name="RouteView" type="Control" parent="Frame"]
@@ -123,5 +123,5 @@ offset_top = 590.0
 offset_right = 330.0
 offset_bottom = 628.0
 focus_mode = 0
-theme_override_font_sizes/font_size = 14
-text = "CONTINUE"
+theme_override_font_sizes/font_size = 16
+text = "NEXT STOP"

@@ -1,6 +1,8 @@
 [gd_resource type="Resource" script_class="FTEnemyType" format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy_type.gd" id="1_q1qs2"]
+[ext_resource type="Texture2D" path="res://assets/enemies/spider.png" id="art_png"]
+[ext_resource type="JSON" path="res://assets/enemies/spider.json" id="art_json"]
 
 [resource]
 script = ExtResource("1_q1qs2")
@@ -10,3 +12,6 @@ attack_interval = Vector2(2, 4)
 staggerable = true
 sway = 28.0
 base_color = Color(0.85, 0.25, 0.45, 1)
+entrance = 2
+sheet = ExtResource("art_png")
+sheet_data = ExtResource("art_json")

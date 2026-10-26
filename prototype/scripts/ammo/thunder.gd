@@ -11,7 +11,7 @@ func on_hit(battle: FTBattle, enemy: FTEnemy) -> void:
 	var target: FTEnemy = null
 	var best := INF
 	for other in battle.director.enemies:
-		if other == enemy or not other.alive:
+		if other == enemy or not other.alive or other.entering:
 			continue
 		var distance := from.distance_to(other.get_global_rect().get_center())
 		if distance < best:

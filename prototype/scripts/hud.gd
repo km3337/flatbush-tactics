@@ -5,14 +5,13 @@ extends CanvasLayer
 signal choice_made(item: Resource)
 
 @onready var ammo_row: HBoxContainer = $AmmoRow
-@onready var reload_label: Label = $ReloadLabel
+@onready var reload_sprite: TextureRect = $ReloadSprite
 @onready var hit_marker: Label = $HitMarker
 @onready var damage_flash: ColorRect = $DamageFlash
 @onready var hits_label: Label = $HitsLabel
 @onready var counter_label: Label = $CounterLabel
-@onready var portrait: ColorRect = $Portrait
-@onready var portrait_label: Label = $Portrait/PortraitLabel
-@onready var hp_pips: Label = $HPPips
+@onready var portrait: TextureRect = $Portrait
+@onready var hp_bar: FTHpBar = $HPBar
 @onready var down_label: Label = $DownLabel
 @onready var cleared_label: Label = $ClearedLabel
 @onready var gear_row: HBoxContainer = $GearRow
@@ -23,6 +22,12 @@ signal choice_made(item: Resource)
 @onready var arsenal_label: Label = $ArsenalLabel
 @onready var money_label: Label = $MoneyLabel
 @export var reaction_seconds := 0.6
+@export var battle_start_seconds := 1.2
+## Seconds the RELOAD sprite stays solid before it starts flashing.
+@export var reload_nag_delay := 1.0
+## One slow flash (fade out and back in).
+@export var reload_flash_seconds := 1.0
+var banner: TextureRect
 @export var gear_info_seconds := 2.5
 ## Reward cards ignore input this long after appearing, so a tap meant for
 ## the last enemy can't pick one by accident.
@@ -46,17 +51,28 @@ const RARITY_COLORS := {
     FTGear.Rarity.RARE: Color(1.0, 0.8, 0.25),
 }
 const GEAR_ICON_SIZE := Vector2(24, 24)
+const BATTLE_START_TEXTURE: Texture2D = preload("res://assets/ui/banners/battle_start.png")
+const ENEMY_DELETED_TEXTURE: Texture2D = preload("res://assets/ui/banners/enemy_deleted.png")
+## Banners are drawn at a whole-number scale, centred on the screen.
+const BANNER_SCALE := 2
+const HIT_SPARK_SHEET: Texture2D = preload("res://assets/fx/hit_spark.png")
+const HIT_SPARK_DATA: JSON = preload("res://assets/fx/hit_spark.json")
 
-## Placeholder portrait states: [word, box colour].
+## Ali's portrait: a strip of 64x64 frames exported from
+## spritework/UI/player_hurt_RECOVERED.aseprite (minus _reference/_guides).
+const PORTRAIT_SHEET: Texture2D = preload("res://assets/ui/hud/portrait_ali.png")
+const PORTRAIT_SIZE := Vector2(64, 64)
+## Frame in the strip per state. idle = resting; hurt = low HP or downed;
+## happy = a brief reaction to a counter or a kill.
 const PORTRAIT_STATES := {
-    "calm": ["CALM", Color(0.3, 0.35, 0.45)],
-    "low": ["HURTING", Color(0.5, 0.12, 0.14)],
-    "down": ["DOWN", Color(0.2, 0.2, 0.2)],
-    "hit_enemy": ["NICE", Color(0.2, 0.55, 0.3)],
-    "miss": ["MISSED", Color(0.4, 0.4, 0.4)],
-    "counter": ["YEAH!", Color(0.8, 0.65, 0.1)],
-    "kill": ["GOT 'EM", Color(0.85, 0.45, 0.1)],
-    "got_hit": ["OUCH", Color(0.85, 0.15, 0.15)],
+    "idle": 0,
+    "hurt": 1,
+    "happy": 2,
+}
+## Which battle events show a reaction (others leave the portrait alone).
+const REACTIONS := {
+    "counter": "happy",
+    "kill": "happy",
 }
 
 func setup_ammo(maximum: int) -> void:
@@ -70,7 +86,7 @@ func setup_ammo(maximum: int) -> void:
         slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
         var bullet := Label.new()
         bullet.text = "▮"
-        bullet.add_theme_font_size_override("font_size", 25)
+        bullet.add_theme_font_size_override("font_size", 24)
         bullet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         bullet.size = slot.custom_minimum_size
         slot.add_child(bullet)
@@ -109,18 +125,41 @@ func _drop_bullet(bullet: Label) -> void:
     tween.tween_callback(func(): bullet.visible = false)
     tween.finished.connect(func(): bullet_tweens.erase(bullet))
 
+## Magazine empty: show the RELOAD sprite. It stays solid, and if the player
+## still hasn't reloaded after `reload_nag_delay` it starts flashing slowly.
+## Repeated empty clicks don't restart it.
 func show_reload() -> void:
-    reload_label.visible = true
+    if reload_sprite.visible:
+        return
+    reload_sprite.visible = true
+    reload_sprite.modulate.a = 1.0
     if reload_tween: reload_tween.kill()
+    reload_tween = create_tween()
+    reload_tween.tween_interval(reload_nag_delay)
+    reload_tween.tween_callback(_flash_reload)
+
+func _flash_reload() -> void:
     reload_tween = create_tween().set_loops()
-    reload_tween.tween_property(reload_label, "modulate:a", 0.15, 0.13)
-    reload_tween.tween_property(reload_label, "modulate:a", 1.0, 0.13)
+    reload_tween.tween_property(reload_sprite, "modulate:a", 0.15, reload_flash_seconds / 2.0).set_trans(Tween.TRANS_SINE)
+    reload_tween.tween_property(reload_sprite, "modulate:a", 1.0, reload_flash_seconds / 2.0).set_trans(Tween.TRANS_SINE)
 
 func hide_reload() -> void:
     if reload_tween: reload_tween.kill()
-    reload_label.visible = false
-    reload_label.modulate.a = 1.0
+    reload_sprite.visible = false
+    reload_sprite.modulate.a = 1.0
 
+## A shot connected: play the hit spark (assets/fx/hit_spark) centred there.
+func show_hit_effect(screen_position: Vector2) -> void:
+    var sheet := FTSpriteSheet.load_sheet(HIT_SPARK_SHEET, HIT_SPARK_DATA)
+    var spark := AnimatedSprite2D.new()
+    spark.sprite_frames = sheet.frames
+    spark.position = screen_position.round()
+    add_child(spark)
+    spark.play(&"default")
+    # Untagged sheets loop, so remove it after one play-through.
+    get_tree().create_timer(sheet.length(&"default")).timeout.connect(spark.queue_free)
+
+## A shot missed: the old marker.
 func show_shot_feedback(screen_position: Vector2) -> void:
     hit_marker.position = screen_position - hit_marker.size / 2.0
     hit_marker.visible = true
@@ -158,14 +197,18 @@ func show_counter() -> void:
     counter_tween.tween_callback(func(): counter_label.visible = false)
 
 func update_health(current: int, maximum: int, is_low: bool) -> void:
-    hp_pips.text = "■".repeat(current) + "□".repeat(maximum - current)
+    hp_bar.set_hp(current, maximum)
     low_health = is_low
     if reaction_timer == null:
         _set_portrait(_resting_state())
 
-## Briefly show a reaction, then fall back to calm / low HP.
-func react(state: String) -> void:
-    _set_portrait(state)
+## A battle event ("counter", "kill", "miss"...). Events in REACTIONS show
+## their portrait briefly, then it falls back to idle / hurt; the rest are
+## ignored.
+func react(event: String) -> void:
+    if not REACTIONS.has(event):
+        return
+    _set_portrait(REACTIONS[event])
     var timer := get_tree().create_timer(reaction_seconds)
     reaction_timer = timer
     await timer.timeout
@@ -175,14 +218,33 @@ func react(state: String) -> void:
 
 func show_down() -> void:
     reaction_timer = null
-    _set_portrait("down")
+    _set_portrait("hurt")
     down_label.visible = true
 
-## CLEARED, plus the money the fight paid.
-func show_cleared(pay := 0) -> void:
+## The fight is won: the ENEMY DELETED banner (stays until the next screen
+## or the reward picker).
+func show_cleared() -> void:
     react("kill")
-    cleared_label.text = "CLEARED\n+$%d" % pay if pay > 0 else "CLEARED"
-    cleared_label.visible = true
+    _show_banner(ENEMY_DELETED_TEXTURE)
+
+## The fight opens: the BATTLE START banner for `battle_start_seconds`.
+## Await it; the battle starts once it's gone.
+func show_battle_start() -> void:
+    _show_banner(BATTLE_START_TEXTURE)
+    await get_tree().create_timer(battle_start_seconds).timeout
+    banner.visible = false
+
+func _show_banner(texture: Texture2D) -> void:
+    if banner == null:
+        banner = TextureRect.new()
+        banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        banner.stretch_mode = TextureRect.STRETCH_SCALE
+        add_child(banner)
+    banner.texture = texture
+    banner.size = texture.get_size() * BANNER_SCALE
+    banner.position = ((get_viewport().get_visible_rect().size - banner.size) / 2.0).floor()
+    banner.visible = true
 
 func update_money(amount: int) -> void:
     money_label.text = "$%d" % amount
@@ -227,7 +289,7 @@ func _make_item_icon(item: Resource) -> ColorRect:
         frame.add_child(fill)
         var letters := Label.new()
         letters.text = item.abbreviation
-        letters.add_theme_font_size_override("font_size", 9)
+        letters.add_theme_font_size_override("font_size", 8)
         letters.add_theme_constant_override("outline_size", 3)
         letters.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.08))
         letters.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -250,7 +312,8 @@ func show_choice(items: Array, title: String, can_skip := false, name_suffixes: 
             choice_cards.remove_child(child)
             child.queue_free()
     choice_title.text = title
-    cleared_label.visible = false
+    if banner:
+        banner.visible = false
     var buttons: Array[Button] = []
     for i in items.size():
         var suffix: String = name_suffixes[i] if i < name_suffixes.size() else ""
@@ -264,7 +327,7 @@ func show_choice(items: Array, title: String, can_skip := false, name_suffixes: 
         skip.focus_mode = Control.FOCUS_NONE
         skip.disabled = true
         skip.custom_minimum_size = Vector2(300, 32)
-        skip.add_theme_font_size_override("font_size", 12)
+        skip.add_theme_font_size_override("font_size", 8)
         skip.pressed.connect(_choose.bind(null))
         choice_cards.add_child(skip)
         buttons.append(skip)
@@ -296,18 +359,18 @@ func _make_choice_card(item: Resource, number: int, suffix: String) -> Button:
     card.add_child(icon)
     var name_label := Label.new()
     name_label.text = "%d  %s%s" % [number, item.display_name.to_upper(), suffix]
-    name_label.add_theme_font_size_override("font_size", 14)
+    name_label.add_theme_font_size_override("font_size", 16)
     name_label.position = Vector2(60, 4)
     card.add_child(name_label)
     var rarity_label := Label.new()
     rarity_label.text = FTGear.Rarity.keys()[item.rarity]
-    rarity_label.add_theme_font_size_override("font_size", 9)
+    rarity_label.add_theme_font_size_override("font_size", 8)
     rarity_label.add_theme_color_override("font_color", RARITY_COLORS[item.rarity])
     rarity_label.position = Vector2(60, 22)
     card.add_child(rarity_label)
     var description_label := Label.new()
     description_label.text = item.description
-    description_label.add_theme_font_size_override("font_size", 10)
+    description_label.add_theme_font_size_override("font_size", 8)
     description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     description_label.position = Vector2(60, 36)
     description_label.size = Vector2(232, 32)
@@ -359,11 +422,13 @@ func _pulse_gear(frame: Control) -> void:
     tween.tween_property(frame, "modulate", Color.WHITE, 0.25)
 
 func _resting_state() -> String:
-    return "low" if low_health else "calm"
+    return "hurt" if low_health else "idle"
 
 func _set_portrait(state: String) -> void:
-    # Once downed, the portrait stays on DOWN until the restart.
+    # Once downed, the portrait stays on hurt until the restart.
     if down_label.visible:
         return
-    portrait_label.text = PORTRAIT_STATES[state][0]
-    portrait.color = PORTRAIT_STATES[state][1]
+    var frame := AtlasTexture.new()
+    frame.atlas = PORTRAIT_SHEET
+    frame.region = Rect2(Vector2(PORTRAIT_STATES[state] * PORTRAIT_SIZE.x, 0), PORTRAIT_SIZE)
+    portrait.texture = frame

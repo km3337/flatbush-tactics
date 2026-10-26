@@ -47,7 +47,7 @@ func _draw() -> void:
 			for k in 2:  # chevrons, like the countdown screen
 				var cy := y - 5 + k * 6
 				draw_polyline(PackedVector2Array([Vector2(LINE_X - 5, cy), Vector2(LINE_X, cy + 4), Vector2(LINE_X + 5, cy)]), TEXT, 2.0)
-			draw_string(font, Vector2(NAME_X, y + 4), "Previous stops", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, DIM_TEXT)
+			draw_string(font, Vector2(NAME_X, y + 4), "Previous stops", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, DIM_TEXT)
 			continue
 		var station: FTStation = row.station
 		var color := DETOUR if row.kind == "detour" else TEXT
@@ -60,12 +60,12 @@ func _draw() -> void:
 			name = "Detour: " + name
 		var text_color := color
 		if row.kind == "current":
-			var width := font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+			var width := font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 			var pill := Rect2(Vector2(NAME_X - 6, y - 10), Vector2(width + 12, 20))
 			draw_rect(pill, Color.WHITE)
 			text_color = PILL_TEXT
-		draw_string(font, Vector2(NAME_X, y + 5), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, text_color)
+		draw_string(font, Vector2(NAME_X, y + 5), name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, text_color)
 		if station.is_transfer() and station.kind != FTStation.Kind.LAST_STOP:
 			var other: int = station.line_indices[0] if station.line_indices[1] == Run.line_index else station.line_indices[1]
-			var width := font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+			var width := font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 			FTStopIcons.draw_bullet(self, Run.stage.lines[other], Vector2(NAME_X + width + 16, y), 8.0)

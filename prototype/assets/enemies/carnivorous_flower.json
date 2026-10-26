@@ -1,0 +1,64 @@
+{
+ "frames": [
+  {
+   "duration": 350,
+   "filename": "carnivorous_flower 0",
+   "frame": {
+    "h": 64,
+    "w": 81,
+    "x": 0,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 64,
+    "w": 81
+   }
+  },
+  {
+   "duration": 350,
+   "filename": "carnivorous_flower 1",
+   "frame": {
+    "h": 64,
+    "w": 81,
+    "x": 85,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 64,
+    "w": 81
+   }
+  }
+ ],
+ "meta": {
+  "app": "flatbush cut.gd",
+  "frameTags": [
+   {
+    "direction": "forward",
+    "from": 0,
+    "name": "idle",
+    "to": 1
+   }
+  ],
+  "image": "carnivorous_flower.png",
+  "slices": [
+   {
+    "keys": [
+     {
+      "bounds": {
+       "h": 64,
+       "w": 81,
+       "x": 0,
+       "y": 0
+      },
+      "frame": 0,
+      "pivot": {
+       "x": 40,
+       "y": 64
+      }
+     }
+    ],
+    "name": "hitbox"
+   }
+  ]
+ }
+}

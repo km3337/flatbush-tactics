@@ -38,8 +38,14 @@ const GEAR_SOURCE_HEADERS := {
 var wave_text := ""
 var is_down := false
 var is_cleared := false
+## The BATTLE START banner is up: no enemies yet, no shooting or reloading.
+var is_starting := false
 var buffered_shot := Vector2.ZERO
 var has_buffered_shot := false
+## Lobbed projectiles, drawn above the cover so they're visible while ducked.
+var projectile_layer: CanvasLayer
+## Lob projectiles still circling their thrower: FTEnemy -> FTLobProjectile.
+var orbiting := {}
 func _ready() -> void:
 	if not Run.active:
 		Run.start_run()  # battle launched directly, e.g. from the editor
@@ -53,7 +59,6 @@ func _ready() -> void:
 	hud.setup_ammo(weapon.magazine_size)
 	input.shoot_requested.connect(_on_shoot_requested)
 	input.reload_requested.connect(_on_reload_requested)
-	weapon.fired.connect(hud.show_shot_feedback)
 	weapon.ammo_changed.connect(hud.update_ammo)
 	weapon.arsenal_changed.connect(hud.update_arsenal)
 	weapon.empty_triggered.connect(hud.show_reload)
@@ -64,10 +69,20 @@ func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
 	player.downed.connect(_on_player_downed)
 	_on_player_health_changed(player.health, player.max_health)
+	projectile_layer = CanvasLayer.new()
+	projectile_layer.layer = cover.layer  # same layer, added later: drawn on top
+	add_child(projectile_layer)
 	director.enemy_spawned.connect(_on_enemy_spawned)
 	director.wave_started.connect(_on_wave_started)
 	director.cleared.connect(_on_encounter_cleared)
 	_set_biome(biome)
+	hud.update_money(Run.money)
+	get_viewport().size_changed.connect(_center_battlefield)
+	_center_battlefield()
+	# BATTLE START first; enemies start arriving once it's gone.
+	is_starting = true
+	await hud.show_battle_start()
+	is_starting = false
 	Run.trigger(&"on_battle_start", [self])
 	var station := Run.current_station
 	director.start(station.encounter if station and station.encounter else STOPS[Run.stop_index % STOPS.size()])
@@ -75,9 +90,6 @@ func _ready() -> void:
 	if extra > 0:  # an event set up an ambush
 		director.add_extra_enemies(Run.STAGE_CONFIG.ambush_enemy, extra)
 		hud.show_info_text("AMBUSH!", "+%d %s" % [extra, "ENEMY" if extra == 1 else "ENEMIES"])
-	hud.update_money(Run.money)
-	get_viewport().size_changed.connect(_center_battlefield)
-	_center_battlefield()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
@@ -120,7 +132,7 @@ func _on_gear_added(gear: FTGear, source: FTGear.Source) -> void:
 # Space / swipe down toggles cover: going in reloads, and the player is locked
 # in until the reload finishes.
 func _on_reload_requested() -> void:
-	if is_down or is_cleared:
+	if is_down or is_cleared or is_starting:
 		return
 	if cover.in_cover:
 		if not weapon.is_reloading:
@@ -143,7 +155,7 @@ func _on_shoot_requested(screen_position: Vector2) -> void:
 	weapon.fire(screen_position)
 
 func _can_shoot() -> bool:
-	return not (is_down or is_cleared or cover.in_cover or weapon.is_reloading)
+	return not (is_down or is_cleared or is_starting or cover.in_cover or weapon.is_reloading)
 
 func _process(_delta: float) -> void:
 	Reticle.cooldown_ratio = weapon.cooldown_ratio()
@@ -162,7 +174,45 @@ func _center_battlefield() -> void:
 func _on_enemy_spawned(enemy: FTEnemy) -> void:
 	enemy.attacked.connect(_on_enemy_attacked)
 	enemy.died.connect(_on_enemy_died.bind(enemy))
+	enemy.lob_readied.connect(_on_lob_readied.bind(enemy))
+	enemy.lob_thrown.connect(_on_lob_thrown.bind(enemy))
 	cover.track_enemy(enemy)
+
+# A lobbing enemy started its wind-up: the projectile appears and circles it.
+func _on_lob_readied(enemy: FTEnemy) -> void:
+	var lob := FTLobProjectile.new()
+	projectile_layer.add_child(lob)
+	lob.orbit(enemy)
+	lob.landed.connect(_on_lob_landed)
+	orbiting[enemy] = lob
+
+# ...and threw it: it arcs toward the player (bottom-centre of the screen).
+# If it was shot down while circling, there's nothing to throw.
+func _on_lob_thrown(enemy: FTEnemy) -> void:
+	var held = orbiting.get(enemy)  # may already be freed (popped)
+	orbiting.erase(enemy)
+	if held == null or not is_instance_valid(held) or held.popped:
+		return
+	var lob: FTLobProjectile = held
+	var screen := get_viewport().get_visible_rect().size
+	lob.launch(Vector2(screen.x / 2.0, screen.y * 0.8), enemy.type.lob_seconds, enemy.type.lob_damage)
+
+# A lob that reaches the player hits even behind cover.
+func _on_lob_landed(lob: FTLobProjectile) -> void:
+	if is_down or is_cleared:
+		return
+	var damage := Run.damage_taken(self, lob.damage)
+	if damage <= 0:
+		return  # gear absorbed it
+	hud.show_player_hit()
+	player.take_damage(damage)
+	if not is_down:
+		hud.react("got_hit")
+
+func _clear_projectiles() -> void:
+	for lob in projectile_layer.get_children():
+		lob.queue_free()
+	orbiting.clear()
 
 # Any kill counts: shots, burn ticks, thunder arcs.
 func _on_enemy_died(enemy: FTEnemy) -> void:
@@ -180,10 +230,11 @@ func _on_encounter_cleared() -> void:
 	if director.endless or is_down:
 		return
 	is_cleared = true
+	_clear_projectiles()
 	var pay := Run.roll_fight_money(director.encounter)
 	Run.money += pay
 	hud.update_money(Run.money)
-	hud.show_cleared(pay)
+	hud.show_cleared()
 	await get_tree().create_timer(CLEARED_BEAT_SECONDS).timeout
 	var wait := RESTART_SECONDS
 	if director.encounter.tier == FTEncounter.Tier.ELITE:
@@ -232,6 +283,13 @@ func _offer_ammo_reward() -> bool:
 
 func _on_weapon_fired(screen_position: Vector2) -> void:
 	var shot_round := weapon.last_fired
+	# Projectiles are in front of everything: they take the shot first.
+	for lob: FTLobProjectile in projectile_layer.get_children():
+		if lob.contains(screen_position):
+			lob.pop()
+			hud.show_hit_effect(screen_position)
+			hud.react("hit_enemy")
+			return
 	# Last in the list draws on top, so check from the back.
 	var enemies := director.enemies
 	for i in range(enemies.size() - 1, -1, -1):
@@ -242,12 +300,14 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 			if countered:
 				hud.show_counter()
 				Run.trigger(&"on_counter", [self, enemy])
+			hud.show_hit_effect(screen_position)
 			shot_round.on_hit(self, enemy)
 			Run.trigger(&"on_shot_hit", [self, enemy])
 			# A kill already reacted through `died`.
 			if enemy.alive:
 				hud.react("counter" if countered else "hit_enemy")
 			return
+	hud.show_shot_feedback(screen_position)
 	hud.react("miss")
 
 # Cover fully protects for now; partial cover can come later.
@@ -272,6 +332,7 @@ func _on_player_health_changed(current: int, maximum: int) -> void:
 # Going down ends the run (Run Over screen; all gear is lost).
 func _on_player_downed() -> void:
 	is_down = true
+	_clear_projectiles()
 	hud.show_down()
 	await get_tree().create_timer(RESTART_SECONDS).timeout
 	Run.lose_run()

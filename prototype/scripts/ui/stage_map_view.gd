@@ -111,7 +111,7 @@ func _draw_last_stop() -> void:
 	var rect := Rect2(pos - Vector2(52, 14), Vector2(104, 28))
 	draw_rect(rect, INK)
 	var font := get_theme_default_font()
-	draw_string(font, Vector2(rect.position.x, pos.y + 5), "LAST STOP", HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 13, PAPER)
+	draw_string(font, Vector2(rect.position.x, pos.y + 5), "LAST STOP", HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 8, PAPER)
 
 # MTA-style transfer connector (white with a black outline) joining the
 # shared station's dots on its two lines. It arches above the row so it
@@ -142,10 +142,10 @@ func _draw_names(i: int) -> void:
 		var station := line.stations[depth]
 		var y := row_y(depth)
 		draw_line(Vector2(column_x(i) + DOT_RADIUS + 2, y), Vector2(NAME_X - 4, y), Color(line.color, 0.5), 1.0)
-		draw_string(font, Vector2(NAME_X, y + 4), station.display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, INK)
+		draw_string(font, Vector2(NAME_X, y + 4), station.display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, INK)
 		if station.is_transfer():
 			var other: int = station.line_indices[0] if station.line_indices[1] == i else station.line_indices[1]
-			var width := font.get_string_size(station.display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
+			var width := font.get_string_size(station.display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 			var bullet_pos := Vector2(NAME_X + width + 12, y)
 			draw_circle(bullet_pos, 7, stage.lines[other].color)
-			draw_string(font, bullet_pos + Vector2(-7, 4), stage.lines[other].bullet, HORIZONTAL_ALIGNMENT_CENTER, 14, 10, stage.lines[other].text_color)
+			draw_string(font, bullet_pos + Vector2(-7, 4), stage.lines[other].bullet, HORIZONTAL_ALIGNMENT_CENTER, 14, 8, stage.lines[other].text_color)

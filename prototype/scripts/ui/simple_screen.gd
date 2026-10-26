@@ -34,7 +34,7 @@ func _ready() -> void:
 	add_child(frame)
 	var title_label := Label.new()
 	title_label.text = title
-	title_label.add_theme_font_size_override("font_size", 26)
+	title_label.add_theme_font_size_override("font_size", 24)
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -43,7 +43,7 @@ func _ready() -> void:
 	frame.add_child(title_label)
 	var body_label := Label.new()
 	body_label.text = body
-	body_label.add_theme_font_size_override("font_size", 12)
+	body_label.add_theme_font_size_override("font_size", 8)
 	body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body_label.position = Vector2(24, 220)
@@ -52,7 +52,7 @@ func _ready() -> void:
 	button = Button.new()
 	button.text = button_text
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_font_size_override("font_size", 14)
+	button.add_theme_font_size_override("font_size", 16)
 	button.position = Vector2(40, 560)
 	button.size = Vector2(280, 40)
 	button.pressed.connect(_press)

@@ -1,0 +1,64 @@
+{
+ "frames": [
+  {
+   "duration": 300,
+   "filename": "spider 0",
+   "frame": {
+    "h": 47,
+    "w": 56,
+    "x": 0,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 47,
+    "w": 56
+   }
+  },
+  {
+   "duration": 300,
+   "filename": "spider 1",
+   "frame": {
+    "h": 47,
+    "w": 56,
+    "x": 60,
+    "y": 0
+   },
+   "sourceSize": {
+    "h": 47,
+    "w": 56
+   }
+  }
+ ],
+ "meta": {
+  "app": "flatbush cut.gd",
+  "frameTags": [
+   {
+    "direction": "forward",
+    "from": 0,
+    "name": "idle",
+    "to": 1
+   }
+  ],
+  "image": "spider.png",
+  "slices": [
+   {
+    "keys": [
+     {
+      "bounds": {
+       "h": 47,
+       "w": 56,
+       "x": 0,
+       "y": 0
+      },
+      "frame": 0,
+      "pivot": {
+       "x": 28,
+       "y": 47
+      }
+     }
+    ],
+    "name": "hitbox"
+   }
+  ]
+ }
+}
