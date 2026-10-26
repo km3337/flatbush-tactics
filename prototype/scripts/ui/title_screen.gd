@@ -2,8 +2,8 @@ class_name FTTitleScreen
 extends Control
 
 ## The first screen: the Flatbush Tactics logo flies in (FLATBUSH from the
-## left, TACTICS from the right), then TAP TO START blinks. Any tap, click or
-## key goes straight to Freelancer Select, even mid fly-in.
+## left, TACTICS from the right), then PRESS ANY KEY blinks. Any key, click,
+## tap or gamepad button goes straight to Freelancer Select, even mid fly-in.
 ## The logo is spritework/logo.aseprite cropped to the lettering, scaled to
 ## 0.73x so it fits the 360px width, and split into its two words
 ## (assets/ui/title/logo_*.png, same width so they line up when landed); a
@@ -40,6 +40,7 @@ var intro_done := false
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE  # clicks go to _input, not the GUI
 	opened_at = Time.get_ticks_msec() / 1000.0
 	Music.play(Music.MENU_SONG, -6.0, Music.MENU_SONG_START)
 	var bg := ColorRect.new()
@@ -66,7 +67,7 @@ func _ready() -> void:
 	backing.size = Vector2(FRAME_SIZE.x - 176, 32)
 	frame.add_child(backing)
 	prompt = Label.new()
-	prompt.text = "TAP TO START"
+	prompt.text = "PRESS ANY KEY"
 	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	prompt.add_theme_font_size_override("font_size", 16)
 	prompt.add_theme_color_override("font_color", PROMPT_INK)
@@ -123,10 +124,12 @@ func _finish_intro() -> void:
 	blink.tween_interval(blink_seconds)
 	blink.tween_callback(func(): prompt.visible = not prompt.visible)
 
-func _unhandled_input(event: InputEvent) -> void:
+# _input (not _unhandled_input) so nothing else can swallow the press first.
+func _input(event: InputEvent) -> void:
 	var pressed: bool = (event is InputEventMouseButton and event.pressed) \
 		or (event is InputEventScreenTouch and event.pressed) \
-		or (event is InputEventKey and event.pressed and not event.echo)
+		or (event is InputEventKey and event.pressed and not event.echo) \
+		or (event is InputEventJoypadButton and event.pressed)
 	if not pressed or Time.get_ticks_msec() / 1000.0 - opened_at < input_delay:
 		return
 	get_viewport().set_input_as_handled()

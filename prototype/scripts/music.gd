@@ -9,8 +9,9 @@ const MENU_SONG: AudioStream = preload("res://assets/music/menu_secret_portraits
 ## Confirm sound for menus (tap to start, start run, board a line): from a
 ## Mega Man Zero SFX collection at 0:10 (spritework/sfx/).
 const MENU_SELECT: AudioStream = preload("res://assets/sfx/menu_select.wav")
-## The menu song opens with ~0.25s of silence; start just before the sound.
-const MENU_SONG_START := 0.2
+## Start the menu song just before the section that hits at 6.1s (skipping
+## the slow intro, which fades to near-silence from about 5.2s).
+const MENU_SONG_START := 6.05
 
 var player: AudioStreamPlayer
 var _sound: AudioStreamPlayer
