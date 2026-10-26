@@ -169,4 +169,5 @@ func _board() -> void:
 	if map_view.selected < 0 or panning:
 		return
 	board_button.disabled = true
+	Music.play_sound(Music.MENU_SELECT)
 	Run.board(map_view.selected)

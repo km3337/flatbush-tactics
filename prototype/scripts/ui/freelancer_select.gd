@@ -233,6 +233,7 @@ func _choose() -> void:
 	if f == null or choose_button.disabled:
 		return
 	choose_button.disabled = true
+	Music.play_sound(Music.MENU_SELECT)
 	Music.fade_out()
 	Run.choose_freelancer(f)
 

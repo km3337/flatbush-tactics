@@ -2,8 +2,8 @@ class_name FTTitleScreen
 extends Control
 
 ## The first screen: the Flatbush Tactics logo flies in (FLATBUSH from the
-## left, TACTICS from the right), then TAP TO START blinks. A tap during the
-## fly-in skips it; after that any tap, click or key goes to Freelancer Select.
+## left, TACTICS from the right), then TAP TO START blinks. Any tap, click or
+## key goes straight to Freelancer Select, even mid fly-in.
 ## The logo is spritework/logo.aseprite cropped to the lettering, scaled to
 ## 0.73x so it fits the 360px width, and split into its two words
 ## (assets/ui/title/logo_*.png, same width so they line up when landed); a
@@ -77,8 +77,7 @@ func _ready() -> void:
 	# Words wait off-screen until the music can be heard, then fly in.
 	_place_off_screen()
 	await Music.wait_until_audible(Music.MENU_SONG_START)
-	if not intro_done:  # a tap may have skipped the intro already
-		_fly_in()
+	_fly_in()
 
 func _word(parent: Control, texture: Texture2D, y: float) -> TextureRect:
 	var word := TextureRect.new()
@@ -131,7 +130,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not pressed or Time.get_ticks_msec() / 1000.0 - opened_at < input_delay:
 		return
 	get_viewport().set_input_as_handled()
-	if not intro_done:
-		_finish_intro()  # first tap just skips the fly-in
-		return
+	Music.play_sound(Music.MENU_SELECT)
 	get_tree().change_scene_to_file(NEXT_SCENE)
