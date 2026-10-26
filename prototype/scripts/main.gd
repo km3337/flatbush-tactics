@@ -38,6 +38,9 @@ const GEAR_SOURCE_HEADERS := {
 ## When the fight ends (won or downed) the music fades out over this long.
 @export var music_fade_seconds := 3.0
 var music: AudioStreamPlayer
+## The freelancer's shot sound; a few can overlap so quick shots don't cut
+## each other off.
+var shot_sound: AudioStreamPlayer
 @onready var weapon: FTWeapon = $Weapon
 @onready var input: FTPlayerInput = $PlayerInput
 @onready var hud: FTHud = $HUD
@@ -77,6 +80,10 @@ func _ready() -> void:
 	weapon.reload_finished.connect(hud.hide_reload)
 	weapon.load_arsenal(Run.arsenal, Run.rng)
 	weapon.fired.connect(_on_weapon_fired)
+	shot_sound = AudioStreamPlayer.new()
+	shot_sound.stream = Run.freelancer.fire_sound
+	shot_sound.max_polyphony = 4
+	add_child(shot_sound)
 	player.health_changed.connect(_on_player_health_changed)
 	player.downed.connect(_on_player_downed)
 	_on_player_health_changed(player.health, player.max_health)
@@ -332,6 +339,8 @@ func _offer_ammo_reward() -> bool:
 	return true
 
 func _on_weapon_fired(screen_position: Vector2) -> void:
+	if shot_sound.stream:
+		shot_sound.play()
 	var shot_round := weapon.last_fired
 	# Projectiles are in front of everything: they take the shot first.
 	for lob: FTLobProjectile in projectile_layer.get_children():

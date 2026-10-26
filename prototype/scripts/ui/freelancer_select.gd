@@ -48,6 +48,7 @@ func current() -> FTFreelancer:
 	return roster[index] if index < roster.size() else null
 
 func _ready() -> void:
+	Music.play(Music.MENU_SONG, -6.0, Music.MENU_SONG_START)  # carries on from the title screen
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
 	bg.color = Color(0.98, 0.97, 0.95)
@@ -232,6 +233,7 @@ func _choose() -> void:
 	if f == null or choose_button.disabled:
 		return
 	choose_button.disabled = true
+	Music.fade_out()
 	Run.choose_freelancer(f)
 
 func _unhandled_input(event: InputEvent) -> void:

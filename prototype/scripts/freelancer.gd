@@ -20,6 +20,8 @@ extends Resource
 @export var reload_seconds := 0.65
 ## Minimum time between shots.
 @export var fire_cooldown := 0.4
+## Played on every shot fired (not on dry fire).
+@export var fire_sound: AudioStream
 ## Most rounds the arsenal can hold; past this, a pickup means removing one.
 @export var arsenal_capacity := 20
 @export var starting_money := 20

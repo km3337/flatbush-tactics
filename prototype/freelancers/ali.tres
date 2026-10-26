@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://ammo/freeze.tres" id="4"]
 [ext_resource type="Resource" path="res://gear/pilon_cannon.tres" id="5"]
 [ext_resource type="Texture2D" path="res://assets/freelancers/ali_portrait.png" id="6"]
+[ext_resource type="AudioStream" path="res://assets/sfx/ali_shot.tres" id="7"]
 
 [resource]
 script = ExtResource("1")
@@ -18,6 +19,7 @@ max_health = 5
 magazine_size = 5
 reload_seconds = 0.65
 fire_cooldown = 0.4
+fire_sound = ExtResource("7")
 arsenal_capacity = 20
 starting_money = 20
 starting_gear = ExtResource("5")
