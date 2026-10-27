@@ -29,6 +29,7 @@ var leave_button: Button
 var remove_panel: Control
 
 func _ready() -> void:
+	FTClosingDoors.open_over(self)  # arriving: the doors slide open
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	shop = Run.current_station.shop if Run.current_station and Run.current_station.shop else load("res://shops/pawn_shop.tres")
 	_roll_stock()
@@ -224,6 +225,7 @@ func _leave() -> void:
 	if leave_button.disabled:
 		return
 	leave_button.disabled = true
+	await FTClosingDoors.add_to(self).close()
 	Run.complete_stop()
 
 func _unhandled_input(event: InputEvent) -> void:

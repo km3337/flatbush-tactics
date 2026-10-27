@@ -20,6 +20,7 @@ var buttons: Array[Button] = []
 var continue_button: Button
 
 func _ready() -> void:
+	FTClosingDoors.open_over(self)  # arriving: the doors slide open
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	event = Run.pick_event()
 	var bg := ColorRect.new()
@@ -145,6 +146,7 @@ func _continue() -> void:
 	if continue_button == null or continue_button.disabled:
 		return
 	continue_button.disabled = true
+	await FTClosingDoors.add_to(self).close()
 	Run.complete_stop()
 
 func _unhandled_input(event_: InputEvent) -> void:

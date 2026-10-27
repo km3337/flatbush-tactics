@@ -100,8 +100,9 @@ func _ready() -> void:
 	var station := Run.current_station
 	var encounter: FTEncounter = station.encounter if station and station.encounter else STOPS[Run.stop_index % STOPS.size()]
 	_start_music(encounter)
-	# BATTLE START first; enemies start arriving once it's gone.
+	# Doors slide open, then BATTLE START; enemies arrive once it's gone.
 	is_starting = true
+	await FTClosingDoors.add_to(hud).open()
 	await hud.show_battle_start()
 	is_starting = false
 	Run.trigger(&"on_battle_start", [self])
@@ -293,6 +294,10 @@ func _on_encounter_cleared() -> void:
 	hud.update_money(Run.money)
 	hud.show_cleared()
 	await get_tree().create_timer(CLEARED_BEAT_SECONDS).timeout
+	# Doors close over the HUD; reward picks and their pop-ups stay on top.
+	var doors := FTClosingDoors.add_to(hud, hud.choice_panel.get_index())
+	hud.move_child(hud.gear_info, hud.choice_panel.get_index())
+	await doors.close()
 	var wait := RESTART_SECONDS
 	if director.encounter.tier == FTEncounter.Tier.ELITE:
 		var choices := Run.roll_gear_choices(FTGear.Source.ELITE)

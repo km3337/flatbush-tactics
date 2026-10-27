@@ -2,17 +2,21 @@ class_name FTTransit
 extends Control
 
 ## Placeholder transit sequence between stops. Kristian's animation replaces
-## the visuals (objects past the subway window, MTA-style next-stop sign,
-## doors opening). Keep this contract:
+## the visuals (objects past the subway window, MTA-style next-stop sign).
+## The doors opening is played by the stop itself (FTClosingDoors.open()), so
+## the ride ends straight into it. Keep this contract:
 ##   - Read where the train is going from `Run.upcoming_station()`;
 ##     `Run.is_detouring()` is true when it's a detour stop (show the service
 ##     change).
-##   - When the doors open, call `_arrive()`. It moves the run to the stop,
+##   - When the ride ends, call `_arrive()`. It moves the run to the stop,
 ##     asks about a transfer if the stop has one, then opens the encounter.
-## Tap, Space or Enter skips to the doors.
+## Tap, Space or Enter skips the ride.
+## The ride to the Last Stop plays the conductor's announcement and lasts as
+## long as it does (skipping cuts it off).
 
 const RIDE_SECONDS := 2.0
-const DOORS_SECONDS := 0.5
+## Freesound 86938 by jerk01, "last stop".
+const LAST_STOP_ANNOUNCEMENT: AudioStream = preload("res://assets/sfx/last_stop.wav")
 const WINDOW := Rect2(20, 50, 320, 230)
 const SIGN := Rect2(20, 318, 320, 118)
 const LED_RED := Color(1.0, 0.18, 0.12)
@@ -20,6 +24,9 @@ const LED_ORANGE := Color(1.0, 0.55, 0.12)
 const LED_GREEN := Color(0.3, 0.95, 0.35)
 
 var station: FTStation
+## How long the train rides (longer to the Last Stop).
+var ride_seconds := RIDE_SECONDS
+var announcement: AudioStreamPlayer
 var detour := false
 var time := 0.0
 var arrived := false
@@ -30,6 +37,14 @@ var prompt_lines: Array[int] = []
 func _ready() -> void:
 	station = Run.upcoming_station()
 	detour = Run.is_detouring()
+	if station.kind == FTStation.Kind.LAST_STOP:
+		# The ride lasts as long as the announcement.
+		ride_seconds = maxf(RIDE_SECONDS, LAST_STOP_ANNOUNCEMENT.get_length())
+		announcement = AudioStreamPlayer.new()
+		announcement.stream = LAST_STOP_ANNOUNCEMENT
+		announcement.volume_db = -6.0
+		add_child(announcement)
+		announcement.play()
 	for i in 14:
 		streaks.append(Vector3(randf_range(0, WINDOW.size.x), randf_range(10, WINDOW.size.y - 10), randf_range(20, 90)))
 
@@ -42,7 +57,7 @@ func _process(delta: float) -> void:
 		if streaks[i].x + streaks[i].z < 0:
 			streaks[i] = Vector3(WINDOW.size.x, randf_range(10, WINDOW.size.y - 10), randf_range(20, 90))
 	queue_redraw()
-	if time >= RIDE_SECONDS + DOORS_SECONDS:
+	if time >= ride_seconds:
 		_arrive()
 
 func _gui_input(event: InputEvent) -> void:
@@ -63,7 +78,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _skip() -> void:
 	if not arrived:
-		time = maxf(time, RIDE_SECONDS + DOORS_SECONDS)
+		time = maxf(time, ride_seconds)
+		if announcement:
+			announcement.stop()
 
 func _origin() -> Vector2:
 	return ((size - Vector2(360, 640)) / 2.0).floor()
@@ -93,16 +110,6 @@ func _draw() -> void:
 	if station.is_transfer() and station.kind != FTStation.Kind.LAST_STOP and not detour:
 		var other: int = station.line_indices[0] if station.line_indices[1] == Run.line_index else station.line_indices[1]
 		draw_string(font, sign.position + Vector2(14, 106), "Transfer to the %s" % Run.stage.lines[other].bullet, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, LED_GREEN)
-	# Doors: closed during the ride, sliding open at the end.
-	var open := clampf((time - RIDE_SECONDS) / DOORS_SECONDS, 0.0, 1.0)
-	if open > 0.0:
-		var half := size.x / 2.0
-		var shift := half * open
-		var door := Color(0.55, 0.57, 0.6)
-		draw_rect(Rect2(Vector2(-shift, 0), Vector2(half, size.y)), door)
-		draw_rect(Rect2(Vector2(half + shift, 0), Vector2(half, size.y)), door)
-		if open < 0.6:
-			draw_string(font, Vector2(0, size.y / 2.0), "DOORS OPENING", HORIZONTAL_ALIGNMENT_CENTER, size.x, 16, Color(0.1, 0.1, 0.12))
 
 func _arrive() -> void:
 	arrived = true
