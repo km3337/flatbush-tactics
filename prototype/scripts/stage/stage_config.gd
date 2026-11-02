@@ -6,7 +6,11 @@ extends Resource
 @export_group("Shape")
 @export var line_count := 3
 ## Stops per line before the Last Stop.
-@export var stops_per_line := 8
+@export var stops_per_line := 10
+## Fights come in runs of this many in a row, each followed by one event or
+## shop. stops_per_line has to fit: with (2, 3), 10 gives three different
+## patterns; 8 would give only one (3 + 3).
+@export var fight_run := Vector2i(2, 3)
 @export var transfer_count := Vector2i(1, 2)
 @export var hidden_per_line := Vector2i(1, 2)
 @export var detour_count := 1

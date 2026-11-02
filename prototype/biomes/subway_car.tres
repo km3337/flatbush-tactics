@@ -10,5 +10,5 @@
 script = ExtResource("1")
 backdrops = Array[ExtResource("bdscript")]([ExtResource("bg1"), ExtResource("bg2"), ExtResource("bg3")])
 display_name = "Subway Car"
-cover_name = "Seat Row"
+cover_name = "Car Pole"
 cover_color = Color(0.22, 0.44, 0.94, 1)

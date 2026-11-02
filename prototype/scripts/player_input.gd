@@ -16,7 +16,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		shoot_requested.emit(event.position)
+		# A touch also arrives as an emulated mouse press; the touch branch
+		# below handles it, so one tap is one shot and a swipe is never a shot.
+		if event.device != InputEvent.DEVICE_ID_EMULATION:
+			shoot_requested.emit(event.position)
 		return
 
 	if event is InputEventScreenTouch:

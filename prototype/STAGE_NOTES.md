@@ -7,7 +7,7 @@ the number of failures.
 
 ## Decided
 
-- **Stage.** One level. 3 train lines of ~8 stops each, all ending at a shared
+- **Stage.** One level. 3 train lines of 10 stops each, all ending at a shared
   **Last Stop** (boss). Generated at stage start from the run's seed.
 - **Line select.** The stage opens on a simplified MTA-style map (coloured
   lines, route bullets, station dots, transfer dots). Picking a line locks in
@@ -17,6 +17,11 @@ the number of failures.
   until you reach them.
 - **Lines are random mixes** of stop types within the rules below (no
   express/local identity).
+- **Back-to-back fights.** Fights come in runs of 2 or 3 in a row, each followed
+  by one `?` or `$` stop. Between fights of a run the route screen is skipped and
+  the ride is 1s (`Run._fight_run_continues`). A transfer prompt or a detour
+  still interrupts a run. `stops_per_line` went from 8 to 10 because 8 only fits
+  one pattern (3 + 3); 10 fits three.
 - **Guarantees per line:** at least 1 shop, at least 1 elite, and the stop
   right before the Last Stop is never a fight (`?` or `$`).
 - **Transfers.** 1–2 stations are shared by two lines at the same stop number.
@@ -35,8 +40,10 @@ the number of failures.
 
 ## Proposed generation rules (tunable in a stage config .tres)
 
-- Stop type weights: battle 45%, event 25%, elite 15%, shop 15%.
-- First stop is a battle. No elite in the first 2 stops. No two shops in a row.
+- Fight weights: battle 45, elite 15. Break weights: event 25, shop 15. Over
+  2000 stages that comes to battle 57%, elite 13%, event 15%, shop 15%.
+- First stop is a battle. No elite in the first 2 stops. At most one elite per
+  run of fights.
 - Transfers never at the first stop or the Last Stop.
 - A few hidden stops per line; detours only on hidden stops.
 - Station names from a pool of Brooklyn/Flatbush-flavoured names.

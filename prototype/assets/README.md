@@ -18,7 +18,7 @@ The game's base resolution is **360x780** (raised from 360x640 for the freelance
 | Hit marker | `HUD/HitMarker` | 32x32 |
 | Cover warning "!" | `cover.gd` | 35x50 |
 | Enemies | `main.gd` `ENEMY_LAYOUT` | 45x75 to 60x100 |
-| Cover top edge | `Cover/Shield` | starts at y=224 (covers the bottom 65%, `coverage`) |
+| Cover pillar | `Cover/Shield` | full height, the right 40% of the screen (144x780 at 360 wide, `coverage`) |
 
 The HUD sticks to the screen edges, so on taller or wider screens the gap between edge-anchored pieces grows. Don't draw a full-screen HUD as one image. Draw it in pieces.
 

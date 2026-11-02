@@ -15,6 +15,8 @@ extends Control
 ## long as it does (skipping cuts it off).
 
 const RIDE_SECONDS := 2.0
+## Between two fights of a run of fights.
+const SHORT_RIDE_SECONDS := 1.0
 ## Freesound 86938 by jerk01, "last stop".
 const LAST_STOP_ANNOUNCEMENT: AudioStream = preload("res://assets/sfx/last_stop.wav")
 const WINDOW := Rect2(20, 50, 320, 230)
@@ -37,6 +39,8 @@ var prompt_lines: Array[int] = []
 func _ready() -> void:
 	station = Run.upcoming_station()
 	detour = Run.is_detouring()
+	if Run.short_ride:
+		ride_seconds = SHORT_RIDE_SECONDS
 	if station.kind == FTStation.Kind.LAST_STOP:
 		# The ride lasts as long as the announcement.
 		ride_seconds = maxf(RIDE_SECONDS, LAST_STOP_ANNOUNCEMENT.get_length())

@@ -41,13 +41,22 @@ and what stays visible during a fight.
 
 ## [ ] Placeholder for the cover system
 
-- [ ] Cover art for the bottom 65% (360x507), replacing the blue rectangle.
-- [ ] One per biome: Parked Car (street), Support Pillar (subway platform),
-      Seat Row (subway car). Only street is used in runs for now.
+- [ ] Pillar art for the right 40% (144x780), replacing the blue rectangle.
+- [ ] One per biome: Support Pillar (street, subway platform), Car Pole
+      (subway car). Only street is used in runs for now.
 - [ ] The slide-in/out still works with an image.
 
 Open: one biome first or all three; how much the art should show of the
 player (hands, gun-fingers?).
+
+## [ ] Event screen art
+
+Template: `spritework/templates/event_screen_template.aseprite` (see
+`EVENT_SCREEN_TEMPLATE.md`). The game picks up the exported art by itself.
+
+- [ ] Background (360x780).
+- [ ] Art for each event (320x130): Churro Lady, Train Traffic Ahead, Lost
+      MetroCard, Showtime, Traveling Poet.
 
 ## [x] Find a good font
 

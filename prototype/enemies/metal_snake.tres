@@ -8,7 +8,8 @@
 script = ExtResource("1")
 display_name = "Metal Snake"
 max_health = 3
-attack_interval = Vector2(0.8, 1.4)
+hit_padding = Vector2(14, 10)
+attack_interval = Vector2(1.4, 2)
 windup_seconds = 0.7
 staggerable = true
 burrows = true

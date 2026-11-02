@@ -8,7 +8,8 @@ placeholder layout.
 - 360x780 (the game's base resolution), RGB, palette `lux2k.pal`.
 - Three frames, one per state (tags):
   - `combat`: out of cover, the HUD as it is now.
-  - `in_cover`: ducked; the cover covers the bottom 65%.
+  - `in_cover`: ducked. Out of date: this shows the old bottom 65% cover. Cover
+    is now a pillar over the right 40%, 144x780 (`prototype/BATTLE_NOTES.md`).
   - `reward`: the after-fight reward picker.
 
 ## Layers (bottom to top)

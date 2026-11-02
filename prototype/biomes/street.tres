@@ -10,5 +10,5 @@
 script = ExtResource("1")
 backdrops = Array[ExtResource("bdscript")]([ExtResource("bg1"), ExtResource("bg2"), ExtResource("bg3")])
 display_name = "Street"
-cover_name = "Parked Car"
+cover_name = "Support Pillar"
 cover_color = Color(0.16, 0.36, 0.86, 1)

@@ -4,7 +4,8 @@ extends Control
 ## A $ stop. The station's FTShop decides what's on the shelf: gear, or ammo
 ## rounds (a bought round joins the arsenal; past capacity you remove one).
 ## Stock is rolled on arrival, each item sells once. Every shop also sells a
-## heal. LEAVE (or Enter) moves on. Keys 1-5 buy the matching row.
+## heal. Tap anywhere on a row to buy it. LEAVE (or Enter) moves on. Keys 1-5
+## buy the matching row.
 
 const FRAME_SIZE := Vector2(360, 780)
 const BACKGROUND := Color(0.1, 0.09, 0.08)
@@ -17,6 +18,12 @@ const RARITY_COLORS := {
 }
 const ROW_TOP := 236.0
 const ROW_HEIGHT := 66.0
+const ROW_COLORS := {
+	"normal": Color(0.15, 0.14, 0.12),
+	"hover": Color(0.22, 0.21, 0.17),
+	"pressed": Color(0.28, 0.27, 0.2),
+	"disabled": Color(0.1, 0.09, 0.08),
+}
 
 var shop: FTShop
 var stock: Array[Resource] = []
@@ -105,7 +112,9 @@ func _row_y(i: int) -> float:
 
 func _item_row(i: int, item: Resource) -> void:
 	var y := _row_y(i)
+	_buy_button(y, _buy.bind(i))
 	var icon := Control.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.position = Vector2(20, y + 8)
 	icon.size = Vector2(36, 36)
 	icon.draw.connect(func(): _draw_item_icon(icon, item))
@@ -113,11 +122,12 @@ func _item_row(i: int, item: Resource) -> void:
 	_label(frame, "%d  %s" % [i + 1, item.display_name.to_upper()], Vector2(66, y), Vector2(190, 10), 8, Color.WHITE)
 	_label(frame, FTGear.Rarity.keys()[item.rarity], Vector2(66, y + 12), Vector2(190, 10), 8, RARITY_COLORS[item.rarity])
 	_label(frame, item.description, Vector2(66, y + 27), Vector2(190, 32), 8, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_buy_button(y, _buy.bind(i))
 
 func _heal_row(i: int) -> void:
 	var y := _row_y(i)
+	_buy_button(y, _buy_heal)
 	var icon := Control.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.position = Vector2(20, y + 8)
 	icon.size = Vector2(36, 36)
 	icon.draw.connect(func():
@@ -126,14 +136,21 @@ func _heal_row(i: int) -> void:
 	frame.add_child(icon)
 	_label(frame, "%d  %s" % [i + 1, shop.heal_name.to_upper()], Vector2(66, y), Vector2(190, 18), 8, Color.WHITE)
 	_label(frame, "Restores %d HP. Buy as many as you need." % shop.heal_amount, Vector2(66, y + 20), Vector2(190, 30), 8, DIM).vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_buy_button(y, _buy_heal)
 
+# The whole row is the button; its text (the price) sits at the right, and the
+# row's labels draw on top without taking clicks.
 func _buy_button(y: float, action: Callable) -> void:
 	var button := Button.new()
 	button.focus_mode = Control.FOCUS_NONE
-	button.position = Vector2(262, y + 12)
-	button.size = Vector2(78, 30)
+	button.position = Vector2(12, y)
+	button.size = Vector2(336, ROW_HEIGHT - 4)
+	button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	button.add_theme_font_size_override("font_size", 8)
+	for state in ROW_COLORS:
+		var style := StyleBoxFlat.new()
+		style.bg_color = ROW_COLORS[state]
+		style.content_margin_right = 12
+		button.add_theme_stylebox_override(state, style)
 	button.pressed.connect(action)
 	frame.add_child(button)
 	buy_buttons.append(button)

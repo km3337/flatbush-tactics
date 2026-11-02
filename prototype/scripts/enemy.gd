@@ -74,6 +74,9 @@ var stun_fx_size := Vector2.ZERO
 var windup_speed := 1.0
 ## Burrowers: between firing and rising again (sinking, underground, rising).
 var burrowing := false
+## Burrowers: on the way down or underground. Until then it can still be shot.
+var sinking := false
+var burrow_tween: Tween
 ## Counter hits landed during the current wind-up.
 var counter_hits_taken := 0
 # Statuses from ammo modifiers.
@@ -239,7 +242,10 @@ func _process(delta: float) -> void:
 			sprite.self_modulate = type.windup_tint
 
 func contains(screen_position: Vector2) -> bool:
-	return alive and not entering and not burrowing and get_global_rect().has_point(screen_position)
+	if not alive or entering or sinking:
+		return false
+	var pad := type.hit_padding
+	return get_global_rect().grow_individual(pad.x, pad.y, pad.x, pad.y).has_point(screen_position)
 
 ## A shot from the player. Spends toxic stacks for bonus damage. Returns true
 ## if the hit was a counter (landed during the wind-up).
@@ -351,6 +357,8 @@ func _die() -> void:
 	alive = false
 	winding_up = false
 	stun_timer = 0.0
+	if burrow_tween:
+		burrow_tween.kill()  # shot before it sank: it dies where it stands
 	_set_stars_visible(false)
 	_set_glitch(0.0)
 	if stun_fx:
@@ -425,13 +433,16 @@ func _finish_entrance() -> void:
 
 # --- Burrowing --------------------------------------------------------------
 
-# After firing: sink, wait underground (hidden, can't be hit; the director
-# moves it to another floor slot), then rise again.
+# After firing: hold (it can still be shot), sink, wait underground (hidden,
+# can't be hit; the director moves it to another floor slot), then rise again.
 func _burrow() -> void:
 	burrowing = true
 	var tween := create_tween()
+	burrow_tween = tween
 	tween.tween_interval(BURROW_DELAY)
-	tween.tween_callback(func(): pivot_offset = Vector2(size.x / 2.0, size.y))
+	tween.tween_callback(func():
+		sinking = true
+		pivot_offset = Vector2(size.x / 2.0, size.y))
 	if sheet and sheet.has(&"burrow"):
 		tween.tween_callback(_play.bind(&"burrow"))
 		tween.tween_interval(sheet.length(&"burrow"))
@@ -449,6 +460,7 @@ func _burrow() -> void:
 # Rise out of the ground, then act like any arrived enemy.
 func _emerge() -> void:
 	burrowing = false
+	sinking = false
 	visible = true
 	position = home
 	var tween := create_tween()

@@ -57,6 +57,17 @@ func _ready() -> void:
 				if depth > 0:
 					check(not (st.kind == K.SHOP and kinds[depth - 1] == K.SHOP), lt + ": no shop after shop")
 			check(kinds[0] == K.BATTLE, lt + ": first stop is a battle")
+			var run := 0
+			var elites := 0
+			for kind in kinds:
+				if kind in [K.BATTLE, K.ELITE]:
+					run += 1
+					elites += 1 if kind == K.ELITE else 0
+				else:
+					check(run >= CONFIG.fight_run.x and run <= CONFIG.fight_run.y, lt + ": fight run of %d" % run)
+					check(elites <= 1, lt + ": at most one elite per run")
+					run = 0
+					elites = 0
 			check(kinds[-1] in [K.EVENT, K.SHOP], lt + ": rest before the Last Stop")
 			check(kinds.has(K.SHOP), lt + ": has a shop")
 			check(kinds.has(K.ELITE), lt + ": has an elite")

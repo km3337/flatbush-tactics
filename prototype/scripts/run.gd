@@ -8,6 +8,7 @@ extends Node
 ##   Freelancer Select -> Line Select -> Transit -> stop (battle / event /
 ##   shop) -> Route -> Transit
 ##   -> ... -> Last Stop -> Stage Clear   (going down -> Run Over)
+##   A fight followed by another fight skips Route and takes a short ride.
 ##   New Run returns to Freelancer Select.
 ## Gear and arsenal pickups are lost when the run ends, win or lose.
 
@@ -61,6 +62,8 @@ var current_station: FTStation
 ## Forced ? stops still to play before rejoining the line.
 var detour_queue: Array[FTStation] = []
 var detours_taken: Array[FTStation] = []
+## The ride under way is between two fights of a run (Transit shortens it).
+var short_ride := false
 var stops_cleared := 0
 ## Only used when a battle is launched directly (no route): which test
 ## encounter to play next.
@@ -163,7 +166,8 @@ func is_detouring() -> bool:
 
 ## CONTINUE (route screen): leave for the next stop. If the next line station hides a detour, it
 ## triggers now and its ? stops are played first.
-func depart() -> void:
+func depart(short := false) -> void:
+	short_ride = short
 	if detour_queue.is_empty():
 		var next := current_line().stations[route_depth + 1]
 		if next.has_detour() and next not in detours_taken:
@@ -207,8 +211,18 @@ func complete_stop() -> void:
 	if current_station and current_station.kind == FTStation.Kind.LAST_STOP:
 		FTRecords.add_win(_record())
 		_change_scene(STAGE_CLEAR_SCENE)
+	elif _fight_run_continues():
+		depart(true)
 	else:
 		_change_scene(ROUTE_SCENE)
+
+# The fight just won is followed straight by another one. A detour waiting on
+# the next stop still goes through the route screen.
+func _fight_run_continues() -> bool:
+	if current_station == null or not current_station.is_fight():
+		return false
+	var next := current_line().stations[route_depth + 1]
+	return next.is_fight() and not next.has_detour()
 
 ## The player went down. Run Over shows what happened; its button ends the
 ## run and starts a new one.

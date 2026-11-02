@@ -3,8 +3,9 @@ extends RefCounted
 
 ## Builds an FTStageMap from an FTStageConfig and the run's RNG (so a seed
 ## always gives the same map). Steps:
-##   1. Stop types per line: weighted random, re-rolled until the line follows
-##      the rules (see `_line_ok`).
+##   1. Stop types per line: runs of fights split by one event or shop, with
+##      weighted types, re-rolled until the line follows the rules (see
+##      `_line_ok`).
 ##   2. Transfers: a station shared by two lines at the same depth. Its type
 ##      comes from one line and must keep the other line valid.
 ##   3. Hidden stops per line (never transfers), then detours on hidden stops.
@@ -12,8 +13,12 @@ extends RefCounted
 
 const MAX_TRIES := 500
 ## Used only if random rolls keep failing the rules (shouldn't happen with
-## sane weights): a valid line for any length >= 4.
-const FALLBACK_PATTERN := [FTStation.Kind.BATTLE, FTStation.Kind.EVENT, FTStation.Kind.ELITE, FTStation.Kind.SHOP]
+## sane weights): repeated to fill the line, valid at 10 stops.
+const FALLBACK_PATTERN := [
+	FTStation.Kind.BATTLE, FTStation.Kind.BATTLE, FTStation.Kind.ELITE, FTStation.Kind.SHOP,
+	FTStation.Kind.BATTLE, FTStation.Kind.BATTLE, FTStation.Kind.EVENT,
+	FTStation.Kind.BATTLE, FTStation.Kind.BATTLE, FTStation.Kind.EVENT,
+]
 
 var config: FTStageConfig
 var rng: RandomNumberGenerator
@@ -78,9 +83,7 @@ func _generate() -> FTStageMap:
 
 func _roll_line_kinds() -> Array:
 	for attempt in MAX_TRIES:
-		var line := []
-		for depth in config.stops_per_line:
-			line.append(_roll_kind(depth))
+		var line := _roll_line()
 		if _line_ok(line):
 			return line
 	push_warning("Stage generator fell back to a fixed line pattern")
@@ -90,34 +93,53 @@ func _roll_line_kinds() -> Array:
 	fallback[-1] = FTStation.Kind.EVENT
 	return fallback
 
-func _roll_kind(depth: int) -> FTStation.Kind:
-	var n := config.stops_per_line
-	if depth == 0:
+# A run of fights, one event or shop, and again until the line is full.
+func _roll_line() -> Array:
+	var line := []
+	while line.size() < config.stops_per_line:
+		var run := rng.randi_range(config.fight_run.x, config.fight_run.y)
+		for i in mini(run, config.stops_per_line - line.size() - 1):
+			line.append(_roll_fight(line.size()))
+		line.append(_roll_break())
+	return line
+
+func _roll_fight(depth: int) -> FTStation.Kind:
+	if depth == 0 or depth < config.first_elite_depth:
 		return FTStation.Kind.BATTLE
+	var options: Array[FTStation.Kind] = [FTStation.Kind.BATTLE, FTStation.Kind.ELITE]
+	return options[rng.rand_weighted(PackedFloat32Array([config.battle_weight, config.elite_weight]))]
+
+func _roll_break() -> FTStation.Kind:
 	var options: Array[FTStation.Kind] = [FTStation.Kind.EVENT, FTStation.Kind.SHOP]
-	var weights := PackedFloat32Array([config.event_weight, config.shop_weight])
-	if depth < n - 1:  # the stop before the Last Stop is never a fight
-		options.append(FTStation.Kind.BATTLE)
-		weights.append(config.battle_weight)
-		if depth >= config.first_elite_depth:
-			options.append(FTStation.Kind.ELITE)
-			weights.append(config.elite_weight)
-	return options[rng.rand_weighted(weights)]
+	return options[rng.rand_weighted(PackedFloat32Array([config.event_weight, config.shop_weight]))]
+
+func _is_fight(kind: FTStation.Kind) -> bool:
+	return kind in [FTStation.Kind.BATTLE, FTStation.Kind.ELITE]
 
 ## The rules every line must follow.
 func _line_ok(line: Array) -> bool:
 	var n := line.size()
 	if line[0] != FTStation.Kind.BATTLE:
 		return false
-	if line[n - 1] not in [FTStation.Kind.EVENT, FTStation.Kind.SHOP]:
+	if _is_fight(line[n - 1]):  # the stop before the Last Stop is never a fight
 		return false
 	if not line.has(FTStation.Kind.SHOP) or not line.has(FTStation.Kind.ELITE):
 		return false
+	var run := 0
+	var run_has_elite := false
 	for depth in n:
-		if line[depth] == FTStation.Kind.ELITE and depth < config.first_elite_depth:
-			return false
-		if depth > 0 and line[depth] == FTStation.Kind.SHOP and line[depth - 1] == FTStation.Kind.SHOP:
-			return false
+		var kind: FTStation.Kind = line[depth]
+		if kind == FTStation.Kind.ELITE:
+			if depth < config.first_elite_depth or run_has_elite:
+				return false  # at most one elite per run of fights
+			run_has_elite = true
+		if _is_fight(kind):
+			run += 1
+		else:
+			if run < config.fight_run.x or run > config.fight_run.y:
+				return false
+			run = 0
+			run_has_elite = false
 	return true
 
 # --- Transfers, hidden stops, detours ---------------------------------------

@@ -89,6 +89,7 @@ func _ready() -> void:
 	_on_player_health_changed(player.health, player.max_health)
 	projectile_layer = CanvasLayer.new()
 	projectile_layer.layer = cover.layer  # same layer, added later: drawn on top
+	projectile_layer.follow_viewport_enabled = true  # leans with the world
 	add_child(projectile_layer)
 	director.enemy_spawned.connect(_on_enemy_spawned)
 	director.wave_started.connect(_on_wave_started)
@@ -175,7 +176,7 @@ func _on_gear_added(gear: FTGear, source: FTGear.Source) -> void:
 	_on_player_health_changed(player.health, player.max_health)
 
 # Space / swipe down toggles cover: going in reloads, and the player is locked
-# in until the reload finishes.
+# in until the reload finishes. A tap also leaves (see _on_shoot_requested).
 func _on_reload_requested() -> void:
 	if is_down or is_cleared or is_starting:
 		return
@@ -187,24 +188,28 @@ func _on_reload_requested() -> void:
 	cover.enter()
 	weapon.reload()
 
-# Taps do nothing while in cover, or once the battle is over. A tap during
-# the shot cooldown is remembered (only the latest) and fires the moment the
-# cooldown ends.
+# Taps do nothing once the battle is over. A tap in cover leaves it and fires
+# there once out (during the reload lock it waits for the reload to end). A
+# tap during the shot cooldown or the cover slide is remembered too. Only the
+# latest tap is kept; _process fires it the moment it can.
 func _on_shoot_requested(screen_position: Vector2) -> void:
-	if not _can_shoot():
+	if is_down or is_cleared or is_starting:
 		return
-	if weapon.is_cooling_down():
+	if cover.in_cover or cover.is_moving() or weapon.is_cooling_down():
 		buffered_shot = screen_position
 		has_buffered_shot = true
 		return
-	weapon.fire(screen_position)
+	if _can_shoot():
+		weapon.fire(screen_position)
 
 func _can_shoot() -> bool:
 	return not (is_down or is_cleared or is_starting or cover.in_cover or weapon.is_reloading)
 
 func _process(_delta: float) -> void:
 	Reticle.cooldown_ratio = weapon.cooldown_ratio()
-	if has_buffered_shot and not weapon.is_cooling_down():
+	if cover.in_cover and has_buffered_shot and not weapon.is_reloading and not is_down and not is_cleared:
+		cover.exit()
+	if has_buffered_shot and not weapon.is_cooling_down() and not cover.is_moving() and not cover.in_cover:
 		has_buffered_shot = false
 		if _can_shoot():
 			weapon.fire(buffered_shot)

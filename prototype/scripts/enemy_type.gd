@@ -42,6 +42,9 @@ enum Attack { SHOT, LOB }
 ## are cancelled by one hit, others fire anyway.
 @export var counter_hits := 0
 @export var max_health := 3
+## Extra pixels around the hitbox that still count as a hit, per side (x, y).
+## For small or fast enemies that are hard to tap.
+@export var hit_padding := Vector2.ZERO
 @export var attack_interval := Vector2(2.5, 5.0)
 @export var windup_seconds := 0.7
 ## Countering a staggerable enemy cancels its attack and stuns it.

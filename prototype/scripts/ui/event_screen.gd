@@ -5,8 +5,14 @@ extends Control
 ## then the rolled outcome's text and what changed. If a new round puts the
 ## arsenal over capacity, asks which round to remove. CONTINUE moves on.
 ## Keys: 1/2/3 choose, Space/Enter continue.
+## Drawn art is picked up automatically when these files exist (see
+## spritework/templates/EVENT_SCREEN_TEMPLATE.md):
+##   - BACKGROUND_ART: 360x780, behind everything.
+##   - res://assets/events/<event id>.png: 320x130, in the art box.
 
 const BACKGROUND := Color(0.09, 0.1, 0.13)
+const BACKGROUND_ART := "res://assets/ui/event/background.png"
+const EVENT_ART := "res://assets/events/%s.png"
 const ACCENT := Color(1.0, 0.85, 0.2)
 const GOOD := Color(0.55, 0.9, 0.45)
 const BAD := Color(1.0, 0.45, 0.4)
@@ -34,6 +40,12 @@ func _ready() -> void:
 	frame.size = Vector2(360, 640)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(frame)
+	if ResourceLoader.exists(BACKGROUND_ART):
+		var drawn_bg := TextureRect.new()
+		drawn_bg.texture = load(BACKGROUND_ART)
+		drawn_bg.position = Vector2(0, -70)  # the 640 frame sits inside 780
+		drawn_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(drawn_bg)
 
 	var header := ColorRect.new()
 	header.color = Color(0.03, 0.03, 0.04)
@@ -52,9 +64,15 @@ func _ready() -> void:
 	art.position = Vector2(20, 46)
 	art.size = Vector2(320, 130)
 	frame.add_child(art)
-	var art_mark := _label(art, "?", Vector2.ZERO, art.size, 64)
-	art_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	art_mark.add_theme_color_override("font_color", Color(1, 1, 1, 0.15))
+	if ResourceLoader.exists(EVENT_ART % event.id):
+		var drawn_art := TextureRect.new()
+		drawn_art.texture = load(EVENT_ART % event.id)
+		drawn_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		art.add_child(drawn_art)
+	else:
+		var art_mark := _label(art, "?", Vector2.ZERO, art.size, 64)
+		art_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		art_mark.add_theme_color_override("font_color", Color(1, 1, 1, 0.15))
 	var title := _label(frame, event.title.to_upper(), Vector2(20, 184), Vector2(320, 30), 16)
 	title.add_theme_color_override("font_color", ACCENT)
 	text_label = _label(frame, event.text, Vector2(20, 220), Vector2(320, 190), 8)

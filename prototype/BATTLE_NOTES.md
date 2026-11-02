@@ -6,9 +6,10 @@ implements the basics listed under "In the prototype now".
 ## Decided
 
 - **Reload = cover.** Reloading (Space / swipe down) moves the player into cover.
-- **Cover blocks the bottom 65% of the screen.** The top 35% stays visible but
-  blurred while in cover, so far enemies show through as soft shapes (their
-  orange wind-up is still readable). Near enemies are fully hidden. The "!"
+- **Cover is a thin pillar to the side.** Ducking steps sideways: a pillar slides
+  in from the right and blocks the right 40% of the screen, full height, and the
+  world leans 16px left. The rest stays visible but blurred, so enemies show
+  through as soft shapes (their orange wind-up is still readable). The "!"
   warning shows over every winding-up enemy, visible or not.
 - **Biome only changes the cover's look.** Cover works the same everywhere; the
   biome decides the visual (placeholder: blue shade + name label).
@@ -26,8 +27,9 @@ implements the basics listed under "In the prototype now".
 - **Reload differs per character.** Characters will have varying reload times
   and reload mechanics.
 - **Gear can augment reloading.** Picked-up gear can modify reload behaviour.
-- **Leaving cover.** Space (swipe down on touch) leaves cover once the reload
-  lock ends. Tapping in cover does nothing.
+- **Leaving cover.** Any tap leaves cover and fires at that spot once out. A tap
+  during the reload lock waits for the lock to end. Space (swipe down on touch)
+  also leaves once the lock ends, without firing.
 - **Counters.** Hitting an enemy during its attack warning (wind-up) is a
   counter, and "COUNTER" shows on the left side of the screen, then fades.
   COUNTER shows for any enemy, but only certain enemies are staggerable.
@@ -36,7 +38,8 @@ implements the basics listed under "In the prototype now".
   head while staggered.
 - **Cover warnings.** While in cover, a warning icon shows over each attacking
   enemy's position during its wind-up, and flashes when the shot is blocked.
-  Not shown out of cover (the enemy's own tell is visible then).
+  Not shown out of cover, where a red WARNING target box frames the enemy
+  instead, with a bar draining until it fires.
 - **Player HP** is shown as pips at the top left, next to the player portrait.
   At 0 HP the battle restarts (prototype).
 - **Portrait.** Three looks: idle, hurt (2 HP or less, or downed) and happy (briefly, on a counter or a kill). Other events don't change it.
@@ -80,8 +83,8 @@ implements the basics listed under "In the prototype now".
 ## In the prototype now
 
 - Single fixed reload time (`reload_seconds` on the Weapon node, 0.65s).
-- After the reload finishes, the player stays in cover until they press Space /
-  swipe down again.
+- After the reload finishes, the player stays in cover until they tap, press
+  Space or swipe down.
 - Stun lasts 1.5s (`stun_seconds` on FTEnemy); stunned enemies turn grey.
   COUNTER holds 0.8s then fades over 0.4s (on the HUD).
 - Staggerable is set per enemy type (`FTEnemyType`): Grunt and Runner are,
