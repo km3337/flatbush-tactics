@@ -1,13 +1,12 @@
 class_name FTPlayerInput
 extends Node
 
-signal shoot_requested(screen_position: Vector2)
 signal reload_requested
 ## A press (mouse button or finger) went down; the charge shot builds while
 ## it's held (`holding`, at `hold_position`).
 signal hold_started(screen_position: Vector2)
-## The press came up. `tap` is a touch that didn't travel: it fires a normal
-## shot unless the charge is full. (A mouse press already fired on the way down.)
+## The press came up: shots fire here. `tap` is a mouse click or a touch that
+## didn't travel; the battle decides between a normal and a charged shot.
 signal hold_released(screen_position: Vector2, tap: bool)
 ## The press turned into a swipe (reload); no charged shot.
 signal hold_cancelled
@@ -31,11 +30,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.device == InputEvent.DEVICE_ID_EMULATION:
 			return
 		if event.pressed:
-			shoot_requested.emit(event.position)
 			_start_hold(event.position)
 		elif holding:
 			holding = false
-			hold_released.emit(event.position, false)
+			hold_released.emit(event.position, true)
 		return
 
 	if event is InputEventMouseMotion and event.device != InputEvent.DEVICE_ID_EMULATION:

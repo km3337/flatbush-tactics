@@ -45,12 +45,13 @@ implements the basics listed under "In the prototype now".
 - **Getting hit** flashes the screen red, glows the edges red and shakes the
   world slightly. Each instant shot shows where it lands: biting enemies chomp
   (jaws), the rest hit blunt (impact burst). Blocked shots land on the pillar.
-- **Charge shot.** Hold on one enemy for 1.2s to lock on (yellow reticle,
-  yellow overlay on the enemy, over its red warning), release to fire: 2x base
-  damage, plus the freelancer's own effect. Each freelancer has a unique one;
-  Ali's always sets off the Pilon Cannon. Mouse fires a normal shot on press
-  (Mega Man style). Moving off the enemy resets it. It costs one round and
-  otherwise counts as a normal shot. Not from cover.
+- **Charge shot.** Shots fire on release. Hold anywhere for 1.2s to charge
+  (yellow reticle; the enemy under it gets a yellow overlay, over its red
+  warning), release to fire: 2x base damage, plus the freelancer's own effect.
+  Releasing early fires a normal shot; a full charge let go on nothing still
+  fires (and misses). Each freelancer has a unique one; Ali's always sets off
+  the Pilon Cannon. It costs one round and otherwise counts as a normal shot.
+  Not from cover.
 - **Player HP** is shown as pips at the top left, next to the player portrait.
   At 0 HP the battle restarts (prototype).
 - **Portrait.** Three looks: idle, hurt (2 HP or less, or downed) and happy (briefly, on a counter or a kill). Other events don't change it.

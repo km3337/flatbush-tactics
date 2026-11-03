@@ -58,11 +58,10 @@ var buffered_shot := Vector2.ZERO
 var has_buffered_shot := false
 ## Lobbed projectiles, drawn above the cover so they're visible while ducked.
 var projectile_layer: CanvasLayer
-## Charge shot (Run.freelancer.charge_shot): the enemy held on and for how
-## long. Charging is silent and unshown for CHARGE_QUIET_SECONDS, so ordinary
+## Charge shot (Run.freelancer.charge_shot): how long the press has been
+## held. Charging is silent and unshown for CHARGE_QUIET_SECONDS, so ordinary
 ## taps don't blip the charge sound.
 const CHARGE_QUIET_SECONDS := 0.15
-var charge_target: FTEnemy
 var charge_time := 0.0
 var charge_sound: AudioStreamPlayer
 var lock_on: FTLockOn
@@ -81,7 +80,6 @@ func _ready() -> void:
 	_apply_gear_stats()
 	player.health = Run.current_hp()  # HP carries between stops
 	hud.setup_ammo(weapon.magazine_size)
-	input.shoot_requested.connect(_on_shoot_requested)
 	input.reload_requested.connect(_on_reload_requested)
 	input.hold_released.connect(_on_hold_released)
 	input.hold_cancelled.connect(_reset_charge)
@@ -238,19 +236,13 @@ func _exit_tree() -> void:
 	Reticle.cooldown_ratio = 0.0
 	Reticle.charge_ratio = 0.0
 
-# Holding on one enemy charges; anything else (no enemy under the press, a
-# different one, cover, the fight ending) resets it.
+# Holding charges wherever the press is; cover or the fight ending resets it.
+# The enemy under the press (if any) shows the lock-on.
 func _update_charge(delta: float) -> void:
 	var shot := Run.freelancer.charge_shot
-	var enemy: FTEnemy = null
-	if shot and input.holding and not (is_down or is_cleared or is_starting or cover.in_cover or cover.is_moving()):
-		enemy = _enemy_at(input.hold_position)
-	if enemy == null:
+	if not (shot and input.holding) or is_down or is_cleared or is_starting or cover.in_cover or cover.is_moving():
 		_reset_charge()
 		return
-	if enemy != charge_target:
-		_reset_charge()
-		charge_target = enemy
 	charge_time += delta
 	if charge_time < CHARGE_QUIET_SECONDS:
 		return
@@ -258,14 +250,17 @@ func _update_charge(delta: float) -> void:
 		charge_sound.play()
 	var ratio := clampf((charge_time - CHARGE_QUIET_SECONDS) / maxf(shot.charge_seconds - CHARGE_QUIET_SECONDS, 0.01), 0.0, 1.0)
 	Reticle.charge_ratio = ratio
-	lock_on.show_lock(enemy, ratio)
+	var enemy := _enemy_at(input.hold_position)
+	if enemy:
+		lock_on.show_lock(enemy, ratio)
+	else:
+		lock_on.hide_lock()
 
 func _charge_full() -> bool:
 	var shot := Run.freelancer.charge_shot
-	return shot != null and charge_target != null and charge_time >= shot.charge_seconds
+	return shot != null and charge_time >= shot.charge_seconds
 
 func _reset_charge() -> void:
-	charge_target = null
 	charge_time = 0.0
 	if charge_sound and charge_sound.playing:
 		charge_sound.stop()
@@ -273,16 +268,18 @@ func _reset_charge() -> void:
 	if lock_on:
 		lock_on.hide_lock()
 
-# Release: a full charge still on its enemy fires the charged shot; otherwise
-# a touch tap fires a normal one (a mouse press already did, going down).
+# Shots fire on release: a full charge fires the charged shot wherever it's
+# let go (it can miss); otherwise a normal shot. A touch that slid away
+# without charging past the quiet moment doesn't fire (a stray swipe).
 func _on_hold_released(screen_position: Vector2, tap: bool) -> void:
-	var charged := _charge_full() and charge_target.contains(screen_position)
+	var charged := _charge_full()
+	var held := charge_time >= CHARGE_QUIET_SECONDS
 	_reset_charge()
 	if charged and _can_shoot() and not weapon.is_cooling_down():
 		firing_charged = true
 		weapon.fire(screen_position)
 		firing_charged = false
-	elif tap:
+	elif tap or held:
 		_on_shoot_requested(screen_position)
 
 ## The enemy drawn on top at `screen_position` (nearest first, then the
