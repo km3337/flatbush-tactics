@@ -25,6 +25,8 @@ extends Resource
 ## Most rounds the arsenal can hold; past this, a pickup means removing one.
 @export var arsenal_capacity := 20
 @export var starting_money := 20
+## Hold-to-charge shot, unique per freelancer (FTChargeShot). Null = none.
+@export var charge_shot: FTChargeShot
 ## Signature gear every run starts with. Null = a random common instead.
 @export var starting_gear: FTGear
 @export var starting_arsenal: Array[FTAmmoMod] = []

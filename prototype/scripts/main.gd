@@ -58,6 +58,16 @@ var buffered_shot := Vector2.ZERO
 var has_buffered_shot := false
 ## Lobbed projectiles, drawn above the cover so they're visible while ducked.
 var projectile_layer: CanvasLayer
+## Charge shot (Run.freelancer.charge_shot): the enemy held on and for how
+## long. Charging is silent and unshown for CHARGE_QUIET_SECONDS, so ordinary
+## taps don't blip the charge sound.
+const CHARGE_QUIET_SECONDS := 0.15
+var charge_target: FTEnemy
+var charge_time := 0.0
+var charge_sound: AudioStreamPlayer
+var lock_on: FTLockOn
+## True while the weapon fires a charged shot (read in _on_weapon_fired).
+var firing_charged := false
 ## Lob projectiles still circling their thrower: FTEnemy -> FTLobProjectile.
 var orbiting := {}
 func _ready() -> void:
@@ -73,6 +83,8 @@ func _ready() -> void:
 	hud.setup_ammo(weapon.magazine_size)
 	input.shoot_requested.connect(_on_shoot_requested)
 	input.reload_requested.connect(_on_reload_requested)
+	input.hold_released.connect(_on_hold_released)
+	input.hold_cancelled.connect(_reset_charge)
 	weapon.ammo_changed.connect(hud.update_ammo)
 	weapon.arsenal_changed.connect(hud.update_arsenal)
 	weapon.empty_triggered.connect(hud.show_reload)
@@ -91,6 +103,13 @@ func _ready() -> void:
 	projectile_layer.layer = cover.layer  # same layer, added later: drawn on top
 	projectile_layer.follow_viewport_enabled = true  # leans with the world
 	add_child(projectile_layer)
+	lock_on = FTLockOn.new()
+	lock_on.layer = cover.layer  # added after cover: above its WARNING boxes
+	add_child(lock_on)
+	charge_sound = AudioStreamPlayer.new()
+	if Run.freelancer.charge_shot:
+		charge_sound.stream = Run.freelancer.charge_shot.charge_sound
+	add_child(charge_sound)
 	director.enemy_spawned.connect(_on_enemy_spawned)
 	director.wave_started.connect(_on_wave_started)
 	director.cleared.connect(_on_encounter_cleared)
@@ -205,8 +224,9 @@ func _on_shoot_requested(screen_position: Vector2) -> void:
 func _can_shoot() -> bool:
 	return not (is_down or is_cleared or is_starting or cover.in_cover or weapon.is_reloading)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	Reticle.cooldown_ratio = weapon.cooldown_ratio()
+	_update_charge(delta)
 	if cover.in_cover and has_buffered_shot and not weapon.is_reloading and not is_down and not is_cleared:
 		cover.exit()
 	if has_buffered_shot and not weapon.is_cooling_down() and not cover.is_moving() and not cover.in_cover:
@@ -216,6 +236,65 @@ func _process(_delta: float) -> void:
 
 func _exit_tree() -> void:
 	Reticle.cooldown_ratio = 0.0
+	Reticle.charge_ratio = 0.0
+
+# Holding on one enemy charges; anything else (no enemy under the press, a
+# different one, cover, the fight ending) resets it.
+func _update_charge(delta: float) -> void:
+	var shot := Run.freelancer.charge_shot
+	var enemy: FTEnemy = null
+	if shot and input.holding and not (is_down or is_cleared or is_starting or cover.in_cover or cover.is_moving()):
+		enemy = _enemy_at(input.hold_position)
+	if enemy == null:
+		_reset_charge()
+		return
+	if enemy != charge_target:
+		_reset_charge()
+		charge_target = enemy
+	charge_time += delta
+	if charge_time < CHARGE_QUIET_SECONDS:
+		return
+	if not charge_sound.playing and charge_sound.stream:
+		charge_sound.play()
+	var ratio := clampf((charge_time - CHARGE_QUIET_SECONDS) / maxf(shot.charge_seconds - CHARGE_QUIET_SECONDS, 0.01), 0.0, 1.0)
+	Reticle.charge_ratio = ratio
+	lock_on.show_lock(enemy, ratio)
+
+func _charge_full() -> bool:
+	var shot := Run.freelancer.charge_shot
+	return shot != null and charge_target != null and charge_time >= shot.charge_seconds
+
+func _reset_charge() -> void:
+	charge_target = null
+	charge_time = 0.0
+	if charge_sound and charge_sound.playing:
+		charge_sound.stop()
+	Reticle.charge_ratio = 0.0
+	if lock_on:
+		lock_on.hide_lock()
+
+# Release: a full charge still on its enemy fires the charged shot; otherwise
+# a touch tap fires a normal one (a mouse press already did, going down).
+func _on_hold_released(screen_position: Vector2, tap: bool) -> void:
+	var charged := _charge_full() and charge_target.contains(screen_position)
+	_reset_charge()
+	if charged and _can_shoot() and not weapon.is_cooling_down():
+		firing_charged = true
+		weapon.fire(screen_position)
+		firing_charged = false
+	elif tap:
+		_on_shoot_requested(screen_position)
+
+## The enemy drawn on top at `screen_position` (nearest first, then the
+## latest spawned), or null.
+func _enemy_at(screen_position: Vector2) -> FTEnemy:
+	var enemies := director.enemies.duplicate()
+	enemies.reverse()
+	enemies.sort_custom(func(a: FTEnemy, b: FTEnemy): return a.z_index > b.z_index)
+	for enemy: FTEnemy in enemies:
+		if enemy.contains(screen_position):
+			return enemy
+	return null
 
 func _center_battlefield() -> void:
 	var visible_size := get_viewport().get_visible_rect().size
@@ -353,6 +432,7 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 	if shot_sound.stream:
 		shot_sound.play()
 	var shot_round := weapon.last_fired
+	var charged := firing_charged
 	Reticle.fired()
 	# Projectiles are in front of everything: they take the shot first.
 	for lob: FTLobProjectile in projectile_layer.get_children():
@@ -369,26 +449,25 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 			lob.pop()
 			hud.react("hit_enemy")
 			return
-	# Hit the enemy drawn on top: nearest (highest z_index) first, then the
-	# latest spawned.
-	var enemies := director.enemies.duplicate()
-	enemies.reverse()
-	enemies.sort_custom(func(a: FTEnemy, b: FTEnemy): return a.z_index > b.z_index)
-	for enemy: FTEnemy in enemies:
-		if enemy.contains(screen_position):
-			var damage := Run.shot_damage(self, enemy, enemy.winding_up)
-			var countered := enemy.take_hit(damage)
-			if countered:
-				hud.show_counter()
-				Run.trigger(&"on_counter", [self, enemy])
-			hud.show_hit_effect(screen_position)
-			Reticle.hit_confirmed()
-			shot_round.on_hit(self, enemy)
-			Run.trigger(&"on_shot_hit", [self, enemy])
-			# A kill already reacted through `died`.
-			if enemy.alive:
-				hud.react("counter" if countered else "hit_enemy")
-			return
+	# Hit the enemy drawn on top.
+	var enemy := _enemy_at(screen_position)
+	if enemy:
+		var base := Run.freelancer.charge_shot.damage_multiplier if charged else 1
+		var damage := Run.shot_damage(self, enemy, enemy.winding_up, base)
+		var countered := enemy.take_hit(damage)
+		if countered:
+			hud.show_counter()
+			Run.trigger(&"on_counter", [self, enemy])
+		hud.show_hit_effect(screen_position)
+		Reticle.hit_confirmed()
+		shot_round.on_hit(self, enemy)
+		Run.trigger(&"on_shot_hit", [self, enemy])
+		if charged:
+			Run.freelancer.charge_shot.on_hit(self, enemy)
+		# A kill already reacted through `died`.
+		if enemy.alive:
+			hud.react("counter" if countered else "hit_enemy")
+		return
 	hud.show_shot_feedback(screen_position)
 	hud.react("miss")
 

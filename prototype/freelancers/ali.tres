@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://gear/pilon_cannon.tres" id="5"]
 [ext_resource type="Texture2D" path="res://assets/freelancers/ali_portrait.png" id="6"]
 [ext_resource type="AudioStream" path="res://assets/sfx/ali_shot.tres" id="7"]
+[ext_resource type="Resource" path="res://charge_shots/ali_pilon_charge.tres" id="8"]
 
 [resource]
 script = ExtResource("1")
@@ -23,4 +24,5 @@ fire_sound = ExtResource("7")
 arsenal_capacity = 20
 starting_money = 20
 starting_gear = ExtResource("5")
+charge_shot = ExtResource("8")
 starting_arsenal = Array[ExtResource("2")]([ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("3"), ExtResource("4")])

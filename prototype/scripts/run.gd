@@ -318,8 +318,9 @@ func modify_stat(stat: StringName, value: float) -> float:
 		value = g.modify_stat(stat, value)
 	return value
 
-func shot_damage(battle: FTBattle, enemy: FTEnemy, countered: bool) -> int:
-	var damage := 1
+## `base` is 1 for a normal shot; a charge shot multiplies it.
+func shot_damage(battle: FTBattle, enemy: FTEnemy, countered: bool, base := 1) -> int:
+	var damage := base
 	for g in gear:
 		damage = g.modify_shot_damage(battle, enemy, countered, damage)
 	return damage

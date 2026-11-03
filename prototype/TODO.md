@@ -92,3 +92,9 @@ reward cards and shops already use it when set).
 
 Open: palette (how many colours; shared palette across all icons?), and
 whether ammo rounds (Burn, Toxic, Freeze, Thunder, Explosive) get icons too.
+
+## [ ] Charge shot art
+
+- [ ] Lock-on (now a flat yellow copy of the enemy sprite) and the reticle's
+      charge halo (drawn in code).
+- [ ] A charged-shot hit effect (it uses the normal hit spark).

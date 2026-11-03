@@ -6,7 +6,9 @@ extends CanvasLayer
 ## a ring broken into four arcs, and ticks through the gaps. Firing snaps the
 ## ring in and spins the arcs a quarter turn; a hit flashes it red. While the
 ## weapon cools down, a dashed arc under the ring drains (the battle sets
-## `cooldown_ratio`).
+## `cooldown_ratio`). While a charge shot builds (`charge_ratio`), the
+## reticle turns yellow and a yellow halo grows around it; once full the halo
+## pulses.
 ## On touch there's no cursor: the reticle sits where the last tap landed.
 ## Placeholder drawn in code; swap in art later.
 
@@ -25,6 +27,9 @@ const BAR_DASHES := 8
 const WHITE := Color(1, 1, 1)
 const GLOW := Color(0.61, 0.94, 0.99)  # Lux2k light cyan
 const HIT := Color(0.91, 0.27, 0.27)  # Lux2k red
+const CHARGE := Color(1.0, 0.84, 0.41)  # Lux2k gold
+const HALO_RADIUS := 15.0
+const HALO_PULSE_HZ := 6.0
 const OUTLINE := Color(0.06, 0.05, 0.08)
 const BAR := GLOW
 
@@ -38,6 +43,8 @@ const HIT_SECONDS := 0.34
 
 ## 1 = just fired, 0 = ready. Set each frame by the battle; 0 elsewhere.
 var cooldown_ratio := 0.0
+## 0 = not charging, 1 = charge shot ready. Set each frame by the battle.
+var charge_ratio := 0.0
 var canvas: Control
 var shown := false
 var since_fired := INF
@@ -83,7 +90,7 @@ func _process(delta: float) -> void:
 
 func _ring_color() -> Color:
 	if since_hit >= HIT_SECONDS:
-		return WHITE
+		return WHITE.lerp(CHARGE, charge_ratio) if charge_ratio > 0.0 else WHITE
 	if since_hit < 0.06:
 		return HIT
 	if since_hit < 0.12:
@@ -102,7 +109,16 @@ func _draw_reticle() -> void:
 	var radius := roundf(RING_RADIUS - SNAP_PIXELS * snap * snap)
 	var spin := ease(clampf(since_fired / SPIN_SECONDS, 0.0, 1.0), 0.4) * PI / 2.0 if since_fired < SPIN_SECONDS else 0.0
 	var ring := _ring_color()
-	# Glowing core: a cyan halo around a white dot (red on a hit).
+	# Charging: a yellow halo outside the ring, thicker as it fills; pulsing
+	# once full.
+	if charge_ratio > 0.0:
+		var alpha := 0.35 + 0.35 * charge_ratio
+		if charge_ratio >= 1.0:
+			alpha = 0.45 + 0.4 * (0.5 + 0.5 * cos(Time.get_ticks_msec() / 1000.0 * TAU * HALO_PULSE_HZ))
+		var halo_width := roundf(1.0 + 3.0 * charge_ratio) * 2.0
+		canvas.draw_arc(c, HALO_RADIUS + halo_width / 2.0 - (RING_RADIUS - radius), 0, TAU, 40, Color(CHARGE, alpha), halo_width, false)
+	# Glowing core: a cyan halo around a white dot (red on a hit, yellow
+	# while charging).
 	canvas.draw_circle(c, GLOW_RADIUS + 1.0, OUTLINE, true, -1.0, false)
 	canvas.draw_circle(c, GLOW_RADIUS, GLOW if ring == WHITE else ring, true, -1.0, false)
 	canvas.draw_circle(c, CORE_RADIUS, WHITE, true, -1.0, false)

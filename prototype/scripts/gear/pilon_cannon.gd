@@ -11,5 +11,9 @@ extends FTGear
 func on_shot_hit(battle: FTBattle, enemy: FTEnemy) -> void:
 	if Run.rng.randf() >= chance:
 		return
+	explode(battle, enemy)
+
+## Also set off every time by Ali's charge shot.
+func explode(battle: FTBattle, enemy: FTEnemy) -> void:
 	triggered.emit()
 	FTBlast.explode(battle, enemy, radius, splash_damage, blast_color)
