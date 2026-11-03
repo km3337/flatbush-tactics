@@ -10,6 +10,7 @@ display_name = "Heavy"
 floats = true
 max_health = 4
 attack_interval = Vector2(3, 5.5)
+windup_seconds = 1.0
 base_color = Color(0.55, 0.08, 0.14, 1)
 entrance = 1
 sheet = ExtResource("art_png")

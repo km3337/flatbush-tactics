@@ -40,6 +40,11 @@ implements the basics listed under "In the prototype now".
   enemy's position during its wind-up, and flashes when the shot is blocked.
   Not shown out of cover, where a red WARNING target box frames the enemy
   instead, with a bar draining until it fires.
+- **Wind-ups.** Regular enemies wind up for 1.0-1.2s. Elite enemy types have
+  faster wind-ups (Enforcer 0.8s), wherever they appear.
+- **Getting hit** flashes the screen red, glows the edges red and shakes the
+  world slightly. Each instant shot shows where it lands: biting enemies chomp
+  (jaws), the rest hit blunt (impact burst). Blocked shots land on the pillar.
 - **Player HP** is shown as pips at the top left, next to the player portrait.
   At 0 HP the battle restarts (prototype).
 - **Portrait.** Three looks: idle, hurt (2 HP or less, or downed) and happy (briefly, on a counter or a kill). Other events don't change it.

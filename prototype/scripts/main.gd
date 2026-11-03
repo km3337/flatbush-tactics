@@ -226,7 +226,7 @@ func _center_battlefield() -> void:
 		background_art.position = ((visible_size - art_size) / 2.0).floor()
 
 func _on_enemy_spawned(enemy: FTEnemy) -> void:
-	enemy.attacked.connect(_on_enemy_attacked)
+	enemy.attacked.connect(_on_enemy_attacked.bind(enemy))
 	enemy.died.connect(_on_enemy_died.bind(enemy))
 	enemy.lob_readied.connect(_on_lob_readied.bind(enemy))
 	enemy.lob_thrown.connect(_on_lob_thrown.bind(enemy))
@@ -267,6 +267,7 @@ func _on_lob_landed(lob: FTLobProjectile) -> void:
 	if damage <= 0:
 		return  # gear absorbed it
 	hud.show_player_hit()
+	cover.shake()
 	player.take_damage(damage)
 	if not is_down:
 		hud.react("got_hit")
@@ -352,10 +353,12 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 	if shot_sound.stream:
 		shot_sound.play()
 	var shot_round := weapon.last_fired
+	Reticle.fired()
 	# Projectiles are in front of everything: they take the shot first.
 	for lob: FTLobProjectile in projectile_layer.get_children():
 		if lob.contains(screen_position):
 			hud.show_hit_effect(screen_position)
+			Reticle.hit_confirmed()
 			var thrower := lob.thrower()
 			if not lob.launched and thrower and thrower.type.counter_hits > 0:
 				# Takes several hits (droid or orb) to cancel: this is one.
@@ -379,6 +382,7 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 				hud.show_counter()
 				Run.trigger(&"on_counter", [self, enemy])
 			hud.show_hit_effect(screen_position)
+			Reticle.hit_confirmed()
 			shot_round.on_hit(self, enemy)
 			Run.trigger(&"on_shot_hit", [self, enemy])
 			# A kill already reacted through `died`.
@@ -389,19 +393,29 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 	hud.react("miss")
 
 # Cover fully protects for now; partial cover can come later.
-func _on_enemy_attacked() -> void:
+func _on_enemy_attacked(enemy: FTEnemy) -> void:
 	if is_down or is_cleared:
 		return
 	if cover.in_cover:
 		hud.show_blocked()
+		hud.show_attack_fx(enemy.type.attack_fx, cover.blocked_fx_position())
 		return
+	hud.show_attack_fx(enemy.type.attack_fx, _attack_fx_position(enemy))
 	var damage := Run.damage_taken(self, 1)
 	if damage <= 0:
 		return  # gear absorbed it; its icon pulses
 	hud.show_player_hit()
+	cover.shake()
 	player.take_damage(damage)
 	if not is_down:
 		hud.react("got_hit")
+
+# An instant shot lands "on the camera": below the enemy, in the lower
+# middle of the screen, so it reads as coming from that enemy.
+func _attack_fx_position(enemy: FTEnemy) -> Vector2:
+	var screen := get_viewport().get_visible_rect().size
+	var x := enemy.get_global_rect().get_center().x - cover.lean
+	return Vector2(clampf(x, 48.0, screen.x - 48.0), screen.y * randf_range(0.55, 0.72))
 
 func _on_player_health_changed(current: int, maximum: int) -> void:
 	hud.update_health(current, maximum, player.is_low())

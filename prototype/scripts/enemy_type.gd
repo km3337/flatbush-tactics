@@ -15,6 +15,10 @@ enum Entrance { NONE, WOBBLE, DIGITIZE }
 ## `lob_damage` even behind cover.
 enum Attack { SHOT, LOB }
 
+## What a SHOT looks like when it lands (FTAttackFx): BLUNT is an impact
+## burst, BITE is a pair of jaws snapping shut (for enemies with teeth).
+enum AttackFx { BLUNT, BITE }
+
 @export var display_name := "Grunt"
 ## Floaters use the director's mid-air slot positions; everything else
 ## stands on the floor of the current backdrop (FTBackdrop.ground_slots).
@@ -46,7 +50,9 @@ enum Attack { SHOT, LOB }
 ## For small or fast enemies that are hard to tap.
 @export var hit_padding := Vector2.ZERO
 @export var attack_interval := Vector2(2.5, 5.0)
-@export var windup_seconds := 0.7
+## Regular enemies wind up for 1.0-1.2s; elite types (the Enforcer) are faster.
+@export var windup_seconds := 1.0
+@export var attack_fx := AttackFx.BLUNT
 ## Countering a staggerable enemy cancels its attack and stuns it.
 @export var staggerable := false
 @export var stun_seconds := 1.5

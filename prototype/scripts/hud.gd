@@ -58,6 +58,20 @@ const BATTLE_START_SFX: AudioStream = preload("res://assets/sfx/battle_start.mp3
 const BANNER_SCALE := 2
 const HIT_SPARK_SHEET: Texture2D = preload("res://assets/fx/hit_spark.png")
 const HIT_SPARK_DATA: JSON = preload("res://assets/fx/hit_spark.json")
+## Enemy shots landing (see assets/fx/PLACEHOLDER_CREDITS.md).
+const IMPACT_SHEET: Texture2D = preload("res://assets/fx/attack_impact.png")
+const IMPACT_DATA: JSON = preload("res://assets/fx/attack_impact.json")
+const BITE_JAW: Texture2D = preload("res://assets/fx/attack_bite_jaw.png")
+## Drawn at 2x, the same pixel size as enemies in the far slots.
+const ATTACK_FX_SCALE := Vector2(2, 2)
+## How far apart the jaws start (before scaling), and how long they take to
+## snap shut.
+const BITE_GAP := 22.0
+const BITE_CLOSE_SECONDS := 0.1
+const HURT_VIGNETTE_SHADER: Shader = preload("res://shaders/hurt_vignette.gdshader")
+@export var hurt_flash_seconds := 0.3
+@export var hurt_glow_seconds := 0.55
+var hurt_glow: ColorRect
 
 ## Ali's portrait: a strip of 64x64 frames exported from
 ## spritework/UI/player_hurt_RECOVERED.aseprite (minus _reference/_guides).
@@ -75,6 +89,17 @@ const REACTIONS := {
     "counter": "happy",
     "kill": "happy",
 }
+
+func _ready() -> void:
+    # Red edge glow when hit, drawn just above the full-screen damage flash.
+    hurt_glow = ColorRect.new()
+    hurt_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    hurt_glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+    hurt_glow.material = ShaderMaterial.new()
+    hurt_glow.material.shader = HURT_VIGNETTE_SHADER
+    hurt_glow.visible = false
+    add_child(hurt_glow)
+    move_child(hurt_glow, damage_flash.get_index() + 1)
 
 func setup_ammo(maximum: int) -> void:
     for child in ammo_row.get_children(): child.queue_free()
@@ -175,8 +200,54 @@ func show_player_hit() -> void:
     damage_flash.visible = true
     damage_flash.modulate.a = 1.0
     var tween := create_tween()
-    tween.tween_property(damage_flash, "modulate:a", 0.0, 0.3)
+    tween.tween_property(damage_flash, "modulate:a", 0.0, hurt_flash_seconds)
     tween.tween_callback(func(): damage_flash.visible = false)
+    hurt_glow.material.set_shader_parameter("size", hurt_glow.size)
+    hurt_glow.visible = true
+    hurt_glow.modulate.a = 1.0
+    var glow := create_tween()
+    glow.tween_property(hurt_glow, "modulate:a", 0.0, hurt_glow_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    glow.tween_callback(func(): hurt_glow.visible = false)
+
+## An enemy's instant shot lands at `screen_position` (on the player, or on
+## the pillar when blocked): an impact burst, or jaws snapping shut.
+func show_attack_fx(kind: FTEnemyType.AttackFx, screen_position: Vector2) -> void:
+    var at := screen_position.round()
+    if kind == FTEnemyType.AttackFx.BITE:
+        _play_bite(at)
+        return
+    var sheet := FTSpriteSheet.load_sheet(IMPACT_SHEET, IMPACT_DATA)
+    var impact := AnimatedSprite2D.new()
+    impact.sprite_frames = sheet.frames
+    impact.position = at
+    impact.scale = ATTACK_FX_SCALE
+    add_child(impact)
+    impact.play(&"default")
+    get_tree().create_timer(sheet.length(&"default")).timeout.connect(impact.queue_free)
+
+# Upper and lower jaw (the same row of fangs, flipped) slide shut, judder,
+# then fade. Whole-pixel steps so they stay on the pixel grid.
+func _play_bite(at: Vector2) -> void:
+    var bite := Node2D.new()
+    bite.position = at
+    bite.scale = ATTACK_FX_SCALE
+    add_child(bite)
+    var jaws: Array[Sprite2D] = []
+    for side in [-1.0, 1.0]:
+        var jaw := Sprite2D.new()
+        jaw.texture = BITE_JAW
+        jaw.flip_v = side > 0.0
+        jaw.offset = Vector2(0, side * BITE_JAW.get_height() / 2.0)
+        jaw.position = Vector2(0, side * BITE_GAP)
+        bite.add_child(jaw)
+        jaws.append(jaw)
+    var tween := create_tween()
+    for jaw in jaws:
+        tween.parallel().tween_property(jaw, "position:y", 0.0, BITE_CLOSE_SECONDS).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    for x in [2.0, -2.0, 1.0, 0.0]:
+        tween.tween_property(bite, "position:x", at.x + x, 0.03)
+    tween.tween_property(bite, "modulate:a", 0.0, 0.15)
+    tween.tween_callback(bite.queue_free)
 
 func show_blocked() -> void:
     blocked += 1

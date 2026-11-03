@@ -34,6 +34,8 @@ var biome: FTBiome
 var slide_tween: Tween
 var blur_tween: Tween
 var lean := 0.0
+var shake_offset := Vector2.ZERO
+var shake_tween: Tween
 var warnings := {}  # FTEnemy -> Label
 var target_boxes := {}  # FTEnemy -> FTTargetBox
 var blocked_until := {}  # FTEnemy -> time (seconds) the blocked flash ends
@@ -161,7 +163,33 @@ func _place_shield() -> void:
 # the HUD or any enemy's position. Whole pixels, to stay on the art's grid.
 func _set_lean(amount: float) -> void:
 	lean = roundf(amount)
-	get_viewport().canvas_transform = Transform2D(0.0, Vector2(-lean, 0.0))
+	_apply_view()
+
+## A short jolt of the world (enemies and background) when the player is hit.
+## The HUD stays still. Whole pixels, shrinking over `seconds`.
+func shake(pixels := 3.0, seconds := 0.2) -> void:
+	if shake_tween:
+		shake_tween.kill()
+	shake_tween = create_tween()
+	var steps := 6
+	for i in steps:
+		var jolt := Vector2.from_angle(randf() * TAU) * pixels * (1.0 - float(i) / steps)
+		shake_tween.tween_callback(_set_shake.bind(jolt))
+		shake_tween.tween_interval(seconds / steps)
+	shake_tween.tween_callback(_set_shake.bind(Vector2.ZERO))
+
+func _set_shake(offset: Vector2) -> void:
+	shake_offset = offset.round()
+	_apply_view()
+
+func _apply_view() -> void:
+	get_viewport().canvas_transform = Transform2D(0.0, Vector2(-lean, 0.0) + shake_offset)
+
+## Where a blocked shot lands: on the pillar, near its middle so a 2x bite
+## (124px) stays on it.
+func blocked_fx_position() -> Vector2:
+	var pillar := shield.get_global_rect()
+	return Vector2(pillar.get_center().x + randf_range(-6.0, 6.0), randf_range(pillar.size.y * 0.4, pillar.size.y * 0.7))
 
 # Blur fades with the cover slide. Its radius is converted from game pixels to
 # screen pixels, since the game is drawn at the window's integer scale.

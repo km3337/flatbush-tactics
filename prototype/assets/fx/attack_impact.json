@@ -1,0 +1,9 @@
+{
+ "frames": [
+  {"filename": "impact 0", "duration": 40, "frame": {"x": 0, "y": 0, "w": 32, "h": 32}, "sourceSize": {"w": 32, "h": 32}},
+  {"filename": "impact 1", "duration": 50, "frame": {"x": 32, "y": 0, "w": 32, "h": 32}, "sourceSize": {"w": 32, "h": 32}},
+  {"filename": "impact 2", "duration": 70, "frame": {"x": 64, "y": 0, "w": 32, "h": 32}, "sourceSize": {"w": 32, "h": 32}},
+  {"filename": "impact 3", "duration": 60, "frame": {"x": 96, "y": 0, "w": 32, "h": 32}, "sourceSize": {"w": 32, "h": 32}}
+ ],
+ "meta": {"app": "make_attack_fx.lua", "image": "attack_impact.png", "frameTags": [{"name": "default", "from": 0, "to": 3, "direction": "forward"}]}
+}

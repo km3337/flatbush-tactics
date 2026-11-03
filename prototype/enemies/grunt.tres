@@ -8,6 +8,8 @@
 script = ExtResource("1_08et0")
 display_name = "Mutated Rat"
 staggerable = true
+windup_seconds = 1.0
+attack_fx = 1
 sheet = ExtResource("2")
 sheet_data = ExtResource("3")
 entrance = 1

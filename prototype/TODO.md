@@ -25,7 +25,12 @@ Enemies with art draw an animated sprite (`FTEnemyType.sheet` +
 - Enemies without windup frames tint orange while winding up.
 - Enemy art draws at 2x (far slots) / 3x (near slots) for now; the 2.5D view
   will handle depth later.
+- [ ] Attack effects to replace the Pokémon placeholders
+      (`assets/fx/attack_impact`, `attack_bite_jaw`; © Nintendo / Game Freak,
+      see `assets/fx/PLACEHOLDER_CREDITS.md`): a bite and a blunt impact.
 ## [ ] Better in-game UI (battle HUD)
+- [ ] Reticle art (Sin and Punishment style, now drawn in code): idle ring,
+      fire snap/spin, red hit flash, cooldown arc.
 
 - [ ] Portrait + HP pips + money (top left) restyled. Portrait (Ali) and HP bar done; money still placeholder text.
 - [ ] Gear row and gear pop-up.
