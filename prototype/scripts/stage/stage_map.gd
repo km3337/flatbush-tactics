@@ -18,7 +18,7 @@ func stations() -> Array[FTStation]:
 	return result
 
 ## Stops on a line from `from_depth` up to the Last Stop, as text:
-## "4 STOPS: 2 BATTLE · 1 ELITE · 1 UNKNOWN". Hidden stops count as unknown.
+## "4 STOPS: 2 BATTLE - 1 ELITE - 1 UNKNOWN". Hidden stops count as unknown.
 func summary(line_index: int, from_depth := 0) -> String:
 	var line := lines[line_index]
 	var counts := {}
@@ -35,13 +35,13 @@ func summary(line_index: int, from_depth := 0) -> String:
 			parts.append("%d %s" % [counts[kind], FTStation.Kind.keys()[kind]])
 	if unknown:
 		parts.append("%d UNKNOWN" % unknown)
-	return "%d STOPS: %s" % [line.length() - from_depth, "  ·  ".join(parts)]
+	return "%d STOPS: %s" % [line.length() - from_depth, "  -  ".join(parts)]
 
 func transfers() -> Array[FTStation]:
 	return stations().filter(func(s: FTStation): return s.is_transfer())
 
 ## Readable dump for debugging and test output, e.g.
-## "Q  ⚔ Church Av > ? Beverley Rd [5] > ... > ■ Last Stop".
+## "Q  x Church Av > ? Beverley Rd [5] > ... > # Last Stop".
 func describe() -> String:
 	var out := PackedStringArray()
 	for i in lines.size():

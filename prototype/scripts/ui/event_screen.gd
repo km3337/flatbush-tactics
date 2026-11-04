@@ -53,7 +53,7 @@ func _ready() -> void:
 	frame.add_child(header)
 	var where := Run.current_station.display_name.to_upper() if Run.current_station else ""
 	var detour := Run.current_station and Run.current_station not in Run.current_line().stations
-	_label(header, "?  %s%s" % ["DETOUR · " if detour else "", where], Vector2(12, 0), Vector2(220, 34), 8)
+	_label(header, "?  %s%s" % ["DETOUR - " if detour else "", where], Vector2(12, 0), Vector2(220, 34), 8)
 	status_label = _label(header, "", Vector2(150, 0), Vector2(198, 34), 8)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_update_status()

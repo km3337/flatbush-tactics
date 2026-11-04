@@ -7,11 +7,11 @@ extends Resource
 enum Kind { BATTLE, ELITE, EVENT, SHOP, LAST_STOP }
 
 const KIND_ICONS := {
-	Kind.BATTLE: "⚔",
-	Kind.ELITE: "⚔⚔",
+	Kind.BATTLE: "x",
+	Kind.ELITE: "xx",
 	Kind.EVENT: "?",
 	Kind.SHOP: "$",
-	Kind.LAST_STOP: "■",
+	Kind.LAST_STOP: "#",
 }
 
 @export var display_name := ""

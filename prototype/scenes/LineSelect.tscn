@@ -50,7 +50,7 @@ offset_left = 10.0
 offset_right = 350.0
 offset_bottom = 36.0
 theme_override_font_sizes/font_size = 16
-text = "STAGE 1  ·  CHOOSE YOUR LINE"
+text = "STAGE 1  -  CHOOSE YOUR LINE"
 vertical_alignment = 1
 
 [node name="MapClip" type="Control" parent="Frame"]

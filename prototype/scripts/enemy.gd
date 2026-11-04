@@ -116,7 +116,7 @@ func _ready() -> void:
 	if stun_fx == null:
 		for i in 3:
 			var star := Label.new()
-			star.text = "★"
+			star.text = "*"
 			star.add_theme_font_size_override("font_size", 16)
 			star.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
 			star.visible = false
@@ -375,7 +375,7 @@ func _reset_attack_timer() -> void:
 
 func _update_health_label() -> void:
 	# Bosses would be a long row of dots: show the number instead.
-	health_label.text = "●".repeat(health) if type.max_health <= 10 else "%d/%d" % [health, type.max_health]
+	health_label.text = "o".repeat(health) if type.max_health <= 10 else "%d/%d" % [health, type.max_health]
 
 # --- Entrance ---------------------------------------------------------------
 

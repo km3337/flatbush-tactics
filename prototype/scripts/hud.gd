@@ -111,7 +111,7 @@ func setup_ammo(maximum: int) -> void:
         slot.custom_minimum_size = Vector2(16, 35)
         slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
         var bullet := Label.new()
-        bullet.text = "▮"
+        bullet.text = "|"
         bullet.add_theme_font_size_override("font_size", 24)
         bullet.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         bullet.size = slot.custom_minimum_size
@@ -139,7 +139,7 @@ func update_ammo(magazine: Array[FTAmmoMod], maximum: int) -> void:
             _drop_bullet(bullet)
 
 func update_arsenal(draw_count: int, discard_count: int) -> void:
-    arsenal_label.text = "ARSENAL  %d LEFT  ·  %d SPENT" % [draw_count, discard_count]
+    arsenal_label.text = "ARSENAL  %d LEFT  -  %d SPENT" % [draw_count, discard_count]
 
 func _drop_bullet(bullet: Label) -> void:
     var tween := create_tween()

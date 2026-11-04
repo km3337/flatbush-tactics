@@ -97,7 +97,7 @@ offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 24.0
 theme_override_font_sizes/font_size = 8
-text = "FLATBUSH TACTICS — PROTOTYPE"
+text = "FLATBUSH TACTICS - PROTOTYPE"
 horizontal_alignment = 2
 
 [node name="BiomeLabel" type="Label" parent="HUD"]
@@ -265,7 +265,7 @@ visible = false
 offset_right = 32.0
 offset_bottom = 32.0
 theme_override_font_sizes/font_size = 24
-text = "✕"
+text = "X"
 horizontal_alignment = 1
 vertical_alignment = 1
 

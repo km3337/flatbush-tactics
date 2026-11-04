@@ -75,6 +75,11 @@ func hit_confirmed() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion or event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton:
 		shown = true
+	# A real mouse (not a touch's emulated one): hide the system cursor so only
+	# the reticle shows. Covers touch-capable PCs and browsers, where _ready
+	# skips hiding it.
+	if event is InputEventMouse and event.device != InputEvent.DEVICE_ID_EMULATION and Input.mouse_mode != Input.MOUSE_MODE_HIDDEN:
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
 func _notification(what: int) -> void:
 	match what:

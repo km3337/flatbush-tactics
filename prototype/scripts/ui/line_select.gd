@@ -120,16 +120,16 @@ func select_line(index: int) -> void:
 	map_view.select(index)
 	board_button.disabled = index < 0 or panning
 	if index < 0:
-		summary.text = "TAP A LINE TO SEE ITS STOPS  ·  DRAG TO SCROLL"
+		summary.text = "TAP A LINE TO SEE ITS STOPS  -  DRAG TO SCROLL"
 		board_button.text = "CHOOSE A LINE"
 		_style_button(Color(0.3, 0.3, 0.32), Color(0.75, 0.75, 0.78))
 		return
 	var line := Run.stage.lines[index]
-	summary.text = "%s LINE  ·  %d STOPS TO THE LAST STOP\n%s" % [line.bullet, line.length(), _describe(index)]
+	summary.text = "%s LINE  -  %d STOPS TO THE LAST STOP\n%s" % [line.bullet, line.length(), _describe(index)]
 	board_button.text = "BOARD THE %s" % line.bullet
 	_style_button(line.color, line.text_color)
 
-# "3 BATTLE · 1 ELITE · 2 EVENT · 1 SHOP · 1 UNKNOWN" plus any transfers.
+# "3 BATTLE - 1 ELITE - 2 EVENT - 1 SHOP - 1 UNKNOWN" plus any transfers.
 func _describe(index: int) -> String:
 	var line := Run.stage.lines[index]
 	var counts := {}
@@ -150,7 +150,7 @@ func _describe(index: int) -> String:
 			parts.append("%d %s" % [counts[kind], KIND_WORDS[kind]])
 	if unknown:
 		parts.append("%d UNKNOWN" % unknown)
-	var text := "  ·  ".join(parts)
+	var text := "  -  ".join(parts)
 	if not transfers.is_empty():
 		text += "\nTRANSFER TO " + ", ".join(transfers)
 	return text
