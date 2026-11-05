@@ -5,7 +5,7 @@ implements the basics listed under "In the prototype now".
 
 ## Decided
 
-- **Reload = cover.** Reloading (Space / swipe down) moves the player into cover.
+- **Reload = cover.** Reloading (Space / flick down, left or right) moves the player into cover.
 - **Cover is a thin pillar to the side.** Ducking steps sideways: a pillar slides
   in from the right and blocks the right 40% of the screen, full height, and the
   world leans 16px left. The rest stays visible but blurred, so enemies show
@@ -28,7 +28,7 @@ implements the basics listed under "In the prototype now".
   and reload mechanics.
 - **Gear can augment reloading.** Picked-up gear can modify reload behaviour.
 - **Leaving cover.** Any tap leaves cover and fires at that spot once out. A tap
-  during the reload lock waits for the lock to end. Space (swipe down on touch)
+  during the reload lock waits for the lock to end. Space (a reload flick on touch)
   also leaves once the lock ends, without firing.
 - **Counters.** Hitting an enemy during its attack warning (wind-up) is a
   counter, and "COUNTER" shows on the left side of the screen, then fades.
@@ -96,7 +96,7 @@ implements the basics listed under "In the prototype now".
 
 - Single fixed reload time (`reload_seconds` on the Weapon node, 0.65s).
 - After the reload finishes, the player stays in cover until they tap, press
-  Space or swipe down.
+  Space or a reload flick (down, left or right).
 - Stun lasts 1.5s (`stun_seconds` on FTEnemy); stunned enemies turn grey.
   COUNTER holds 0.8s then fades over 0.4s (on the HUD).
 - Staggerable is set per enemy type (`FTEnemyType`): Grunt and Runner are,

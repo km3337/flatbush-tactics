@@ -232,7 +232,7 @@ offset_top = -95.0
 offset_right = -10.0
 offset_bottom = -60.0
 theme_override_font_sizes/font_size = 8
-text = "SPACE / SWIPE DOWN: COVER + RELOAD (TAP TO LEAVE)
+text = "SPACE / FLICK: COVER + RELOAD (TAP TO LEAVE)
 TAP: FIRE     B: NEXT BIOME     G: GET GEAR"
 horizontal_alignment = 1
 autowrap_mode = 2

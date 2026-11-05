@@ -192,7 +192,7 @@ func _on_gear_added(gear: FTGear, source: FTGear.Source) -> void:
 	hud.update_ammo(weapon.magazine, weapon.magazine_size)
 	_on_player_health_changed(player.health, player.max_health)
 
-# Space / swipe down toggles cover: going in reloads, and the player is locked
+# Space / a reload flick toggles cover: going in reloads, and the player is locked
 # in until the reload finishes. A tap also leaves (see _on_shoot_requested).
 func _on_reload_requested() -> void:
 	if is_down or is_cleared or is_starting:

@@ -12,8 +12,12 @@ signal hold_released(screen_position: Vector2, tap: bool)
 signal hold_cancelled
 
 @export var minimum_swipe_distance := 90.0
+## A reload swipe is a quick flick: the finger is down at most this long.
+## Slower drags aim (the reticle follows) and fire on release.
+@export var maximum_swipe_seconds := 0.25
 @export var maximum_tap_travel := 28.0
 var touch_start := Vector2.ZERO
+var touch_start_msec := 0
 var tracking_touch := false
 var holding := false
 var hold_position := Vector2.ZERO
@@ -47,6 +51,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			touch_start = event.position
+			touch_start_msec = Time.get_ticks_msec()
 			tracking_touch = true
 			_start_hold(event.position)
 		elif tracking_touch:
@@ -61,9 +66,15 @@ func _start_hold(screen_position: Vector2) -> void:
 func _finish_touch(end_position: Vector2) -> void:
 	var delta := end_position - touch_start
 	holding = false
-	# Swipe down to reload. Easy to swap direction later.
-	if delta.y > minimum_swipe_distance and abs(delta.y) > abs(delta.x):
+	if _is_reload_flick(delta, (Time.get_ticks_msec() - touch_start_msec) / 1000.0):
 		hold_cancelled.emit()
 		reload_requested.emit()
 	else:
 		hold_released.emit(end_position, delta.length() <= maximum_tap_travel)
+
+## Flick down, left or right to reload; up is left free. Easy to change.
+func _is_reload_flick(delta: Vector2, seconds: float) -> bool:
+	if seconds > maximum_swipe_seconds or delta.length() < minimum_swipe_distance:
+		return false
+	var mostly_up := delta.y < 0.0 and absf(delta.y) > absf(delta.x)
+	return not mostly_up
