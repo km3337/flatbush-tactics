@@ -18,7 +18,8 @@ var screen := -1
 var screen_rect := Rect2i()
 
 func _ready() -> void:
-	if not OS.has_feature("pc") or OS.has_feature("web"):
+	# Movie Maker (--write-movie) records at the --resolution it was given.
+	if not OS.has_feature("pc") or OS.has_feature("web") or Engine.get_write_movie_path() != "":
 		queue_free()
 		return
 	var timer := Timer.new()

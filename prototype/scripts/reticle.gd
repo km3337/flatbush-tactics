@@ -57,6 +57,10 @@ func _ready() -> void:
 	canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
 	canvas.draw.connect(_draw_reticle)
 	add_child(canvas)
+	# Movie Maker recordings (--write-movie) stand in for phone footage: no
+	# reticle, whatever the desktop mouse does while recording.
+	if Engine.get_write_movie_path() != "":
+		canvas.visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if DisplayServer.is_touchscreen_available() and not OS.has_feature("pc"):
 		shown = false  # appears on the first tap
