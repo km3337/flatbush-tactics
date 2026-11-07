@@ -15,9 +15,13 @@ right now.
       original.
 - [ ] Effects: Fire Emblem hit spark and Pokémon impact and bite
       (`assets/fx/PLACEHOLDER_CREDITS.md`).
-- [ ] Music: "Go Crazy" (Sam Waitin), "Synkro" (Qteku) and "Secret Portraits"
-      (New Balance). Either get a written licence for commercial use in a game
-      or replace them.
+- [ ] Music: get a written licence for commercial use in a game, or replace:
+  - "Synkro" by Qteku: bought on Bandcamp (qteku.bandcamp.com, Cypress, TX).
+    A Bandcamp purchase is a personal-use licence; ask Qteku for game use.
+  - "Go Crazy" by Sam Waitin: source not recorded; the file has no artist
+    tags (re-encoded with ffmpeg) and the artist couldn't be found online.
+  - "Secret Portraits" by New Balance: same as Go Crazy (converted from an
+    MP4, no tags, not found online).
 - [ ] Sound effects: the menu select (from a Mega Man Zero SFX collection),
       the "stand clear of the closing doors" announcement and chime (an MTA
       recording), the BATTLE START woosh (source not noted) and the Freesound
