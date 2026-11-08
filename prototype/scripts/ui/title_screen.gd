@@ -4,6 +4,7 @@ extends Control
 ## The first screen: the Flatbush Tactics logo flies in (FLATBUSH from the
 ## left, TACTICS from the right), then PRESS ANY KEY blinks. Any key, click,
 ## tap or gamepad button goes straight to Freelancer Select, even mid fly-in.
+## TRAINING under it (tap/click it, or press T) replays the tutorial.
 ## The logo is spritework/logo.aseprite cropped to the lettering, scaled to
 ## 0.73x so it fits the 360px width, and split into its two words
 ## (assets/ui/title/logo_*.png, same width so they line up when landed); a
@@ -20,6 +21,10 @@ const BACKGROUND := Color8(37, 19, 26)
 const PROMPT_INK := Color8(230, 222, 202)
 const LOGO_Y := 250.0
 const PROMPT_Y := 520.0
+## The TRAINING button, in frame coordinates.
+const TRAINING_RECT := Rect2(116, 584, 128, 28)
+## Taps this close outside the button still count.
+const TRAINING_TOUCH_SLOP := 8.0
 
 ## Time for each word to fly in.
 @export var fly_seconds := 0.45
@@ -34,6 +39,7 @@ const PROMPT_Y := 520.0
 var flatbush: TextureRect
 var tactics: TextureRect
 var prompt: Label
+var training: Control
 var opened_at := 0.0
 var intro: Tween
 var intro_done := false
@@ -75,6 +81,8 @@ func _ready() -> void:
 	prompt.size = Vector2(FRAME_SIZE.x, 24)
 	prompt.visible = false
 	frame.add_child(prompt)
+	training = _training_button()
+	frame.add_child(training)
 	# Words wait off-screen until the music can be heard, then fly in.
 	_place_off_screen()
 	await Music.wait_until_audible(Music.MENU_SONG_START)
@@ -119,6 +127,7 @@ func _finish_intro() -> void:
 	flatbush.position.x = _landed_x()
 	tactics.position.x = _landed_x()
 	prompt.visible = true
+	training.visible = true
 	# Hard on/off blink, arcade style.
 	var blink := create_tween().set_loops()
 	blink.tween_interval(blink_seconds)
@@ -134,4 +143,44 @@ func _input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	Music.play_sound(Music.MENU_SELECT)
+	if _wants_training(event):
+		Music.fade_out()
+		Run.start_tutorial(Run.TITLE_SCENE)
+		return
 	get_tree().change_scene_to_file(NEXT_SCENE)
+
+func _wants_training(event: InputEvent) -> bool:
+	if not training.visible:
+		return false
+	if event is InputEventKey:
+		return event.physical_keycode == KEY_T
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		var area := training.get_global_rect().grow(TRAINING_TOUCH_SLOP)
+		return area.has_point(event.position)
+	return false
+
+# A boxed TRAINING label: the background colour with a cream outline, so it
+# reads as a button. Hidden until the logo has landed.
+func _training_button() -> Control:
+	var box := ColorRect.new()
+	box.color = BACKGROUND
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.position = TRAINING_RECT.position
+	box.size = TRAINING_RECT.size
+	box.visible = false
+	var outline := ReferenceRect.new()
+	outline.editor_only = false
+	outline.border_color = PROMPT_INK
+	outline.border_width = 1.0
+	outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	outline.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.add_child(outline)
+	var label := Label.new()
+	label.text = "TRAINING"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", PROMPT_INK)
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.add_child(label)
+	return box

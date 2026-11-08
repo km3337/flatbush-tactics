@@ -1,6 +1,16 @@
 class_name FTBattle
 extends Node
 
+## What happened in the fight, for the tutorial (FTTutorial) to follow.
+## An enemy's attack went off; `blocked` if cover took it.
+signal attack_resolved(enemy: FTEnemy, blocked: bool)
+## A shot landed during an enemy's wind-up.
+signal enemy_countered(enemy: FTEnemy)
+## A lobbed projectile was shot down (circling or in flight).
+signal lob_popped
+## A lobbed projectile reached the player.
+signal lob_hit_player
+
 const BIOMES: Array[FTBiome] = [
 	preload("res://biomes/street.tres"),
 	preload("res://biomes/subway_platform.tres"),
@@ -69,11 +79,15 @@ var lock_on: FTLockOn
 var firing_charged := false
 ## Lob projectiles still circling their thrower: FTEnemy -> FTLobProjectile.
 var orbiting := {}
+## Set when the run is in its tutorial (Run.in_tutorial): it places the
+## enemies and cues their attacks, and nothing deals damage.
+var tutorial: FTTutorial
 func _ready() -> void:
 	if not Run.active:
 		Run.start_run()  # battle launched directly, e.g. from the editor
 	hud.set_gear(Run.gear)
-	if not Run.starting_gear_announced and not Run.gear.is_empty():
+	# The tutorial leaves the starting-gear pop-up for the first real fight.
+	if not Run.in_tutorial and not Run.starting_gear_announced and not Run.gear.is_empty():
 		hud.show_gear_info(Run.gear[0], GEAR_SOURCE_HEADERS[FTGear.Source.START])
 		Run.starting_gear_announced = true
 	Run.gear_added.connect(_on_gear_added)
@@ -115,6 +129,9 @@ func _ready() -> void:
 	hud.update_money(Run.money)
 	get_viewport().size_changed.connect(_center_battlefield)
 	_center_battlefield()
+	if Run.in_tutorial:
+		_start_tutorial()
+		return
 	var station := Run.current_station
 	var encounter: FTEncounter = station.encounter if station and station.encounter else STOPS[Run.stop_index % STOPS.size()]
 	_start_music(encounter)
@@ -130,8 +147,20 @@ func _ready() -> void:
 		director.add_extra_enemies(Run.STAGE_CONFIG.ambush_enemy, extra)
 		hud.show_info_text("AMBUSH!", "+%d %s" % [extra, "ENEMY" if extra == 1 else "ENEMIES"])
 
+# No encounter: the doors open and FTTutorial takes over.
+func _start_tutorial() -> void:
+	_start_music(STOPS[0])
+	wave_text = "TRAINING"
+	_update_status_label()
+	tutorial = FTTutorial.new()
+	add_child(tutorial)
+	is_starting = true
+	await FTClosingDoors.add_to(hud).open()
+	is_starting = false
+	tutorial.begin(self)
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed and not event.echo):
+	if not (event is InputEventKey and event.pressed and not event.echo) or tutorial:
 		return
 	# Prototype-only: B cycles biomes to compare cover looks.
 	if event.physical_keycode == KEY_B:
@@ -339,6 +368,10 @@ func _on_lob_thrown(enemy: FTEnemy) -> void:
 func _on_lob_landed(lob: FTLobProjectile) -> void:
 	if is_down or is_cleared:
 		return
+	lob_hit_player.emit()
+	if tutorial:
+		cover.shake()
+		return
 	var damage := Run.damage_taken(self, lob.damage)
 	if damage <= 0:
 		return  # gear absorbed it
@@ -445,6 +478,7 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 				return
 			lob.pop()
 			hud.react("hit_enemy")
+			lob_popped.emit()
 			return
 	# Hit the enemy drawn on top.
 	var enemy := _enemy_at(screen_position)
@@ -455,6 +489,7 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 		if countered:
 			hud.show_counter()
 			Run.trigger(&"on_counter", [self, enemy])
+			enemy_countered.emit(enemy)
 		hud.show_hit_effect(screen_position)
 		Reticle.hit_confirmed()
 		shot_round.on_hit(self, enemy)
@@ -472,11 +507,15 @@ func _on_weapon_fired(screen_position: Vector2) -> void:
 func _on_enemy_attacked(enemy: FTEnemy) -> void:
 	if is_down or is_cleared:
 		return
+	attack_resolved.emit(enemy, cover.in_cover)
 	if cover.in_cover:
 		hud.show_blocked()
 		hud.show_attack_fx(enemy.type.attack_fx, cover.blocked_fx_position())
 		return
 	hud.show_attack_fx(enemy.type.attack_fx, _attack_fx_position(enemy))
+	if tutorial:
+		cover.shake()  # felt, but no damage in the tutorial
+		return
 	var damage := Run.damage_taken(self, 1)
 	if damage <= 0:
 		return  # gear absorbed it; its icon pulses

@@ -5,7 +5,7 @@ extends Node
 ## Owns the freelancer, their arsenal (ammo rounds), the gear list, HP, the
 ## stage map and the player's place on it; rolls rewards; fans gear hooks out
 ## to every owned gear; and moves between the run's screens:
-##   Freelancer Select -> Line Select -> Transit -> stop (battle / event /
+##   Freelancer Select -> (first run ever: Tutorial) -> Line Select -> Transit -> stop (battle / event /
 ##   shop) -> Route -> Transit
 ##   -> ... -> Last Stop -> Stage Clear   (going down -> Run Over)
 ##   A fight followed by another fight skips Route and takes a short ride.
@@ -29,6 +29,7 @@ const EVENT_SCENE := "res://scenes/Event.tscn"
 const SHOP_SCENE := "res://scenes/Shop.tscn"
 const RUN_OVER_SCENE := "res://scenes/RunOver.tscn"
 const STAGE_CLEAR_SCENE := "res://scenes/StageClear.tscn"
+const TITLE_SCENE := "res://scenes/TitleScreen.tscn"
 const RARITY_WEIGHTS := {
 	FTGear.Rarity.COMMON: 60.0,
 	FTGear.Rarity.UNCOMMON: 30.0,
@@ -36,6 +37,11 @@ const RARITY_WEIGHTS := {
 }
 
 var active := false
+## The battle scene is running the tutorial (FTTutorial) instead of a fight:
+## no damage, no gear hooks, no rewards.
+var in_tutorial := false
+## Where the tutorial hands over when it ends or is skipped.
+var tutorial_next_scene := LINE_SELECT_SCENE
 var freelancer: FTFreelancer
 ## Every round the freelancer owns; the weapon deals from this each battle.
 var arsenal: Array[FTAmmoMod] = []
@@ -233,10 +239,32 @@ func new_run() -> void:
 	end_run()
 	_change_scene(FREELANCER_SELECT_SCENE)
 
-## Freelancer Select: start the run as `chosen`, then pick a line.
+## Freelancer Select: start the run as `chosen`, then pick a line. A
+## first-time player plays the tutorial first.
 func choose_freelancer(chosen: FTFreelancer) -> void:
 	start_run(randi(), chosen)
-	_change_scene(LINE_SELECT_SCENE)
+	if FTSaveFlags.has(FTSaveFlags.TUTORIAL_DONE):
+		_change_scene(LINE_SELECT_SCENE)
+	else:
+		start_tutorial(LINE_SELECT_SCENE)
+
+## Plays the tutorial in the battle scene, then goes to `next_scene`. From
+## the title screen (replay) there's no run yet, so it starts a throwaway one
+## and ends it afterwards.
+func start_tutorial(next_scene := LINE_SELECT_SCENE) -> void:
+	if not active:
+		start_run()
+	in_tutorial = true
+	tutorial_next_scene = next_scene
+	_change_scene(BATTLE_SCENE)
+
+## The tutorial ended (finished or skipped): it won't start on its own again.
+func finish_tutorial() -> void:
+	in_tutorial = false
+	FTSaveFlags.set_flag(FTSaveFlags.TUTORIAL_DONE)
+	if tutorial_next_scene == TITLE_SCENE:
+		end_run()
+	_change_scene(tutorial_next_scene)
 
 func _change_scene(path: String) -> void:
 	get_tree().change_scene_to_file.call_deferred(path)
@@ -332,5 +360,7 @@ func damage_taken(battle: FTBattle, amount: int) -> int:
 
 ## For hooks without a return value: on_battle_start, on_counter, on_kill.
 func trigger(hook: StringName, args: Array) -> void:
+	if in_tutorial:
+		return  # gear sits out the tutorial
 	for g in gear:
 		g.callv(hook, args)

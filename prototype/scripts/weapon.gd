@@ -64,6 +64,22 @@ func fire(screen_position: Vector2) -> void:
 	if magazine.is_empty():
 		empty_triggered.emit()
 
+## Moves every loaded round to the discard pile, as if they'd been fired
+## (the tutorial's reload lesson).
+func empty_magazine() -> void:
+	discard_pile.append_array(magazine)
+	magazine.clear()
+	_emit_changes()
+	empty_triggered.emit()
+
+## Tops the magazine up straight away, no reload (the tutorial keeps its
+## later steps from running dry).
+func refill() -> void:
+	if is_reloading:
+		return
+	_top_up()
+	_emit_changes()
+
 func reload() -> void:
 	if is_reloading or magazine.size() >= magazine_size:
 		return

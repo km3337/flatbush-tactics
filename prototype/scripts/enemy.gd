@@ -79,6 +79,9 @@ var sinking := false
 var burrow_tween: Tween
 ## Counter hits landed during the current wind-up.
 var counter_hits_taken := 0
+## The tutorial holds attacks back and starts each wind-up itself
+## (`start_windup`).
+var attacks_paused := false
 # Statuses from ammo modifiers.
 var burn_ticks_left := 0
 var burn_tick_timer := 0.0
@@ -209,6 +212,8 @@ func _process(delta: float) -> void:
 			sprite.self_modulate = type.windup_tint if on else Color.WHITE
 		else:
 			color = type.windup_tint if on else type.base_color
+	if attacks_paused and not winding_up:
+		return
 	attack_timer -= delta * (freeze_windup_speed if winding_up and frozen else 1.0)
 	if attack_timer > 0.0:
 		return
@@ -225,21 +230,37 @@ func _process(delta: float) -> void:
 		if type.burrows:
 			_burrow()
 	else:
-		winding_up = true
-		counter_hits_taken = 0
-		_set_color(WINDUP_COLOR)
-		attack_timer = type.windup_seconds
-		if type.attack == FTEnemyType.Attack.LOB:
-			lob_readied.emit()
-		var has_windup_art := sheet != null and _play(&"windup")
-		if has_windup_art:
-			# Stretch the wind-up animation over the actual wind-up time.
-			windup_speed = sheet.length(&"windup") / maxf(type.windup_seconds, 0.01)
-			sprite.speed_scale = windup_speed
-		if sprite and (not has_windup_art or type.windup_flash):
-			# Without wind-up art, the tint is how the attack can be read and
-			# countered.
-			sprite.self_modulate = type.windup_tint
+		_begin_windup()
+
+## Starts a wind-up now (the tutorial's cue). Returns false if it can't:
+## dead, still arriving, stunned, underground or already winding up.
+func start_windup() -> bool:
+	if not alive or entering or winding_up or stun_timer > 0.0 or burrowing:
+		return false
+	_begin_windup()
+	return true
+
+## Sets current HP (the tutorial keeps its enemies quick to finish).
+func set_health(value: int) -> void:
+	health = clampi(value, 1, type.max_health)
+	_update_health_label()
+
+func _begin_windup() -> void:
+	winding_up = true
+	counter_hits_taken = 0
+	_set_color(WINDUP_COLOR)
+	attack_timer = type.windup_seconds
+	if type.attack == FTEnemyType.Attack.LOB:
+		lob_readied.emit()
+	var has_windup_art := sheet != null and _play(&"windup")
+	if has_windup_art:
+		# Stretch the wind-up animation over the actual wind-up time.
+		windup_speed = sheet.length(&"windup") / maxf(type.windup_seconds, 0.01)
+		sprite.speed_scale = windup_speed
+	if sprite and (not has_windup_art or type.windup_flash):
+		# Without wind-up art, the tint is how the attack can be read and
+		# countered.
+		sprite.self_modulate = type.windup_tint
 
 func contains(screen_position: Vector2) -> bool:
 	if not alive or entering or sinking:

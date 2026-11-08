@@ -67,6 +67,13 @@ func add_extra_enemies(type: FTEnemyType, count: int) -> void:
 		pending.append(spawn)
 	_place_pending()
 
+## Spawns one enemy outside any encounter (the tutorial places its own).
+func spawn_enemy(type: FTEnemyType, slot: StringName) -> FTEnemy:
+	var spawn := FTSpawn.new()
+	spawn.enemy_type = type
+	spawn.slot = slot
+	return _spawn(spawn)
+
 func alive_count() -> int:
 	return enemies.filter(func(e: FTEnemy): return e.alive).size()
 
