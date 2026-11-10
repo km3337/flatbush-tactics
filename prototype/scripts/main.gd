@@ -19,8 +19,12 @@ const BATTLE_MUSIC: AudioStream = preload("res://assets/music/battle_go_crazy.mp
 const ELITE_MUSIC: AudioStream = preload("res://assets/music/elite_synkro.mp3")
 
 const RESTART_SECONDS := 1.5
-## After picking a reward, long enough to read its pop-up.
-const REWARD_SECONDS := 2.0
+## After the last reward lands, long enough to read its caption.
+const REWARD_SECONDS := 1.2
+## Shots it takes to open the reward cache (elite fights and the Last Stop
+## use the bigger number).
+const CACHE_HITS := 3
+const CACHE_HITS_ELITE := 4
 ## CLEARED shows on its own this long before the reward picker opens.
 const CLEARED_BEAT_SECONDS := 0.8
 # Battlefield is the minimum visible area (the project's base resolution).
@@ -363,8 +367,10 @@ func _on_wave_started(number: int, total: int) -> void:
 	wave_text = "%sWAVE %d/%d" % [tier_tag, number, total]
 	_update_status_label()
 
-# Show CLEARED, pay out rewards (elite gear, then ammo), then hand back to
-# the run (route screen, or Stage Clear after the Last Stop).
+# Show CLEARED, then the reward screen over the shut doors: shoot the cache
+# open (coins pour into the wallet), pick elite gear (elites only), then an
+# ammo round. Then hand back to the run (route screen, or Stage Clear after
+# the Last Stop).
 func _on_encounter_cleared() -> void:
 	if director.endless or is_down:
 		return
@@ -376,21 +382,29 @@ func _on_encounter_cleared() -> void:
 	hud.update_money(Run.money)
 	hud.show_cleared()
 	await get_tree().create_timer(CLEARED_BEAT_SECONDS).timeout
-	# Doors close over the HUD; reward picks and their pop-ups stay on top.
+	# Doors close over the HUD; the reward screen goes on top.
 	var doors := FTClosingDoors.add_to(hud, hud.choice_panel.get_index())
-	hud.move_child(hud.gear_info, hud.choice_panel.get_index())
 	await doors.close()
-	var wait := RESTART_SECONDS
+	var elite := director.encounter.tier >= FTEncounter.Tier.ELITE
+	var gear_choices: Array[FTGear] = []
 	if director.encounter.tier == FTEncounter.Tier.ELITE:
-		var choices := Run.roll_gear_choices(FTGear.Source.ELITE)
-		if not choices.is_empty():
-			hud.show_choice(choices, "ELITE REWARD\nCHOOSE ONE")
-			var picked: FTGear = await hud.choice_made
-			Run.add_gear(picked, FTGear.Source.ELITE)
-			wait = REWARD_SECONDS
-	if await _offer_ammo_reward():
-		wait = REWARD_SECONDS
-	await get_tree().create_timer(wait).timeout
+		gear_choices = Run.roll_gear_choices(FTGear.Source.ELITE)
+	var ammo_choices := Run.roll_ammo_choices()
+	# The cache glows with the best rarity inside.
+	var best := FTGear.Rarity.COMMON
+	for item in gear_choices:
+		best = maxi(best, item.rarity)
+	for item in ammo_choices:
+		best = maxi(best, item.rarity)
+	hud.begin_rewards(Run.money - pay)
+	await hud.open_cache(pay, best, CACHE_HITS_ELITE if elite else CACHE_HITS)
+	if not gear_choices.is_empty():
+		var notes := gear_choices.map(func(_g): return "NEW!")
+		hud.show_choice(gear_choices, "ELITE REWARD\nCHOOSE ONE", false, [], Run.gear_candidates(FTGear.Source.ELITE), notes, FTHud.Landing.GEAR)
+		var picked: FTGear = await hud.choice_made
+		Run.add_gear(picked, FTGear.Source.ELITE)
+	await _offer_ammo_reward(ammo_choices)
+	await get_tree().create_timer(REWARD_SECONDS).timeout
 	if Run.current_station:
 		Run.complete_stop()
 	else:  # launched directly: loop the test encounters
@@ -399,18 +413,19 @@ func _on_encounter_cleared() -> void:
 
 # Every fight offers 1 of 3 ammo modifiers (skippable). The new round goes
 # into the arsenal; if that puts it over capacity, the player removes one.
-func _offer_ammo_reward() -> bool:
-	var mods := Run.roll_ammo_choices()
+func _offer_ammo_reward(mods: Array[FTAmmoMod]) -> void:
 	if mods.is_empty():
-		return false
-	hud.show_choice(mods, "AMMO REWARD\nARSENAL %d/%d" % [Run.arsenal.size(), Run.arsenal_capacity()], true)
+		return
+	var notes := mods.map(func(m: FTAmmoMod):
+		var owned := Run.arsenal.count(m)
+		return "OWNED x%d" % owned if owned > 0 else "NEW!")
+	hud.show_choice(mods, "AMMO REWARD\nCHOOSE ONE", true, [], Run.AMMO_POOL.mods, notes, FTHud.Landing.AMMO)
 	var picked: FTAmmoMod = await hud.choice_made
 	if picked == null:
-		return false
+		return
 	Run.add_round(picked)
 	if not Run.is_arsenal_over_capacity():
-		hud.show_gear_info(picked, "ADDED TO ARSENAL")
-		return true
+		return
 	# One card per kind of round in the arsenal, with how many of each.
 	var kinds: Array[FTAmmoMod] = []
 	var counts: Array[String] = []
@@ -419,11 +434,9 @@ func _offer_ammo_reward() -> bool:
 			kinds.append(owned)
 	for kind in kinds:
 		counts.append("  x%d" % Run.arsenal.count(kind))
-	hud.show_choice(kinds, "ARSENAL FULL\nREMOVE A ROUND", false, counts)
+	hud.show_choice(kinds, "ARSENAL FULL\nREMOVE A ROUND", false, counts, [], [], FTHud.Landing.SCRAP)
 	var removed: FTAmmoMod = await hud.choice_made
 	Run.remove_round(removed)
-	hud.show_gear_info(picked, "ADDED TO ARSENAL (REMOVED 1 %s)" % removed.display_name.to_upper())
-	return true
 
 func _on_weapon_fired(screen_position: Vector2) -> void:
 	if shot_sound.stream:

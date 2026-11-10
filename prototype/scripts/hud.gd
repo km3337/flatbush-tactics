@@ -43,6 +43,16 @@ var reload_tween: Tween
 var reaction_timer: SceneTreeTimer
 var low_health := false
 var gear_info_timer: SceneTreeTimer
+## Reward screen (built on first use, inside RewardChoice).
+var loadout: FTRewardLoadout
+var cache: FTRewardCache
+## Sparks, coins and flying icons, above the cards.
+var fx_layer: Control
+var cards: Array[FTRewardCard] = []
+var choice_landing := Landing.NONE
+## What taps on the reward screen do: &"cache" (shoot it), &"spin" (stop the
+## reels), &"pick" (cards live), or &"" (animating; ignored).
+var reward_phase := &""
 
 ## Gear icon border colour by rarity.
 const RARITY_COLORS := {
@@ -380,106 +390,309 @@ func _make_item_icon(item: Resource) -> ColorRect:
         frame.add_child(letters)
     return frame
 
+# --- Reward screen -----------------------------------------------------------
+# After a fight, over the shut doors: a loadout strip at the top (wallet,
+# gear, arsenal), a cache to shoot open, then reel cards to shoot one of.
+# Picks fly into the loadout. See README "Reward screen".
+
+## Where a picked card's icon flies to.
+enum Landing { NONE, GEAR, AMMO, SCRAP }
+
+## Starts the reward screen: dims the screen and shows the loadout with
+## `start_money` in the wallet (coins from `open_cache` count it up).
+func begin_rewards(start_money: int) -> void:
+    if banner:
+        banner.visible = false
+    _ensure_reward_nodes()
+    FTRewardSfx.prewarm()
+    loadout.setup(Run.gear, Run.arsenal, Run.arsenal_capacity(), start_money, _make_item_icon)
+    loadout.position = Vector2(roundf((choice_panel.size.x - loadout.size.x) / 2.0), 24)
+    choice_cards.visible = false
+    choice_panel.visible = true
+
+## Drops the cache; the player shoots it `hits` times to open it. Its glow
+## shows `rarity` (the best reward inside). `pay` comes out as coins that fly
+## into the wallet. Await it: returns once the lid is off.
+func open_cache(pay: int, rarity: FTGear.Rarity, hits := 3) -> void:
+    if cache:
+        cache.queue_free()
+    cache = FTRewardCache.new()
+    cache.rarity = rarity
+    cache.hits_needed = hits
+    choice_panel.add_child(cache)
+    choice_panel.move_child(cache, fx_layer.get_index())
+    var land := (choice_panel.size / 2.0 - cache.size / 2.0).round()
+    await cache.drop_in(land)
+    reward_phase = &"cache"
+    await cache.opened
+    reward_phase = &""
+    _screen_flash(Color.WHITE, 0.5, 0.25)
+    _spill_coins(pay, cache.global_position + cache.size / 2.0)
+    # Let the beam fade before the cards fly out of it.
+    await get_tree().create_timer(0.75).timeout
+
 ## Picker for rewards (gear, ammo) and for removing a round. `items` are
 ## FTGear or FTAmmoMod (anything with display_name, description, rarity,
-## color, abbreviation, icon). Click/tap a card or press its number; with
-## `can_skip`, a Skip button (or S) picks nothing. Emits `choice_made` with
-## the item, or null when skipped. `name_suffixes` adds text after a card's
-## name (e.g. "x12"). Cards can't take keyboard focus, so Space
-## (cover/reload) never picks one by accident.
-func show_choice(items: Array, title: String, can_skip := false, name_suffixes: Array = []) -> void:
+## color, abbreviation, icon). Shoot (click/tap) a card or press its number;
+## with `can_skip`, a Skip button (or S) picks nothing. Emits `choice_made`
+## with the item, or null when skipped, once the pick has landed.
+## `name_suffixes` adds text after a card's name (e.g. "x12"); `notes` adds a
+## tag top-right ("NEW!"). With a `reel_pool`, each card spins through it like
+## a slot reel before locking on its item (a tap stops them early).
+## `landing` says where the picked item flies. Cards can't take keyboard
+## focus, so Space (cover/reload) never picks one by accident.
+func show_choice(items: Array, title: String, can_skip := false, name_suffixes: Array = [], reel_pool: Array = [], notes: Array = [], landing := Landing.NONE) -> void:
+    _ensure_reward_nodes()
+    if not choice_panel.visible:
+        begin_rewards(Run.money)
     for child in choice_cards.get_children():
         if child != choice_title:
             choice_cards.remove_child(child)
             child.queue_free()
+    cards.clear()
+    choice_landing = landing
     choice_title.text = title
-    if banner:
-        banner.visible = false
-    var buttons: Array[Button] = []
+    choice_cards.visible = true
     for i in items.size():
         var suffix: String = name_suffixes[i] if i < name_suffixes.size() else ""
-        var card := _make_choice_card(items[i], i + 1, suffix)
+        var note: String = notes[i] if i < notes.size() else ""
+        var card := FTRewardCard.new(items[i], i + 1, suffix, note, RARITY_COLORS)
+        card.fx_parent = fx_layer
+        card.pressed.connect(func(): _pick(card, card.global_position + card.get_local_mouse_position()))
+        card.locked.connect(_on_card_locked.bind(card))
+        if not reel_pool.is_empty():
+            card.prepare_spin(reel_pool)
         choice_cards.add_child(card)
-        buttons.append(card)
+        cards.append(card)
+    var skip: Button = null
     if can_skip:
-        var skip := Button.new()
+        skip = Button.new()
         skip.text = "SKIP (S)"
         skip.name = "Skip"
         skip.focus_mode = Control.FOCUS_NONE
         skip.disabled = true
+        skip.modulate.a = 0.0
         skip.custom_minimum_size = Vector2(300, 32)
         skip.add_theme_font_size_override("font_size", 8)
-        skip.pressed.connect(_choose.bind(null))
+        skip.pressed.connect(_skip)
         choice_cards.add_child(skip)
-        buttons.append(skip)
-    choice_panel.visible = true
-    await get_tree().create_timer(choice_lock_seconds).timeout
-    for button in buttons:
-        button.disabled = false
+    # Cards fly out of the cache (or the middle of the screen).
+    choice_title.pivot_offset = choice_title.size / 2.0
+    choice_title.scale = Vector2(1.5, 1.5)
+    create_tween().tween_property(choice_title, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    await get_tree().process_frame  # let the VBox place the cards
+    var from := choice_panel.global_position + choice_panel.size / 2.0
+    for i in cards.size():
+        cards[i].fly_in(from, i * 0.07)
+    FTRewardSfx.play(self, &"whoosh", 1.2, -12.0)
+    if reel_pool.is_empty():
+        await get_tree().create_timer(choice_lock_seconds).timeout
+    else:
+        await get_tree().create_timer(0.3).timeout
+        reward_phase = &"spin"
+        for i in cards.size():
+            cards[i].spin(reel_pool, 0.5 + i * 0.4)
+        while cards.any(func(c: FTRewardCard): return c.spinning):
+            await get_tree().process_frame
+        await get_tree().create_timer(0.15).timeout
+    reward_phase = &"pick"
+    for card in cards:
+        card.disabled = false
+    if skip:
+        skip.disabled = false
+        create_tween().tween_property(skip, "modulate:a", 1.0, 0.15)
 
-func _make_choice_card(item: Resource, number: int, suffix: String) -> Button:
-    var card := Button.new()
-    card.custom_minimum_size = Vector2(300, 72)
-    card.focus_mode = Control.FOCUS_NONE
-    card.disabled = true
-    var style := StyleBoxFlat.new()
-    style.bg_color = Color(0.11, 0.12, 0.16)
-    style.set_border_width_all(2)
-    style.border_color = Color(0.2, 0.22, 0.28)
-    var hover_style := style.duplicate()
-    hover_style.border_color = RARITY_COLORS[item.rarity]
-    hover_style.bg_color = Color(0.15, 0.16, 0.21)
-    for state in ["normal", "disabled"]:
-        card.add_theme_stylebox_override(state, style)
-    for state in ["hover", "pressed"]:
-        card.add_theme_stylebox_override(state, hover_style)
+func _ensure_reward_nodes() -> void:
+    if fx_layer:
+        return
+    loadout = FTRewardLoadout.new()
+    choice_panel.add_child(loadout)
+    fx_layer = Control.new()
+    fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    choice_panel.add_child(fx_layer)
+    choice_panel.gui_input.connect(_on_reward_panel_input)
+
+func _on_card_locked(card: FTRewardCard) -> void:
+    if card.item.rarity == FTGear.Rarity.RARE:
+        _screen_flash(RARITY_COLORS[FTGear.Rarity.RARE], 0.35, 0.3)
+
+# Clicks/taps that land on the panel rather than a card.
+func _on_reward_panel_input(event: InputEvent) -> void:
+    if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
+        return
+    var at: Vector2 = choice_panel.global_position + event.position
+    match reward_phase:
+        &"cache":
+            _reward_shot(at, cache.get_global_rect().grow(28).has_point(at))
+        &"spin":
+            _fast_forward_reels()
+
+func _fast_forward_reels() -> void:
+    for card in cards:
+        card.fast_forward = true
+
+# A shot on the reward screen: the freelancer's shot sound and the reticle,
+# a spark if it hit; on the cache phase, a hit cracks it.
+func _reward_shot(at: Vector2, hit: bool) -> void:
+    if Run.freelancer and Run.freelancer.fire_sound:
+        _play_sfx(Run.freelancer.fire_sound)
+    Reticle.fired()
+    if not hit:
+        return
+    Reticle.hit_confirmed()
+    show_hit_effect(at)
+    if reward_phase == &"cache" and cache.hit():
+        reward_phase = &""
+
+func _pick(card: FTRewardCard, at: Vector2) -> void:
+    if reward_phase != &"pick" or card.disabled:
+        return
+    reward_phase = &""
+    _reward_shot(at, true)
+    _dismiss_others(card)
+    card.play_chosen()
+    var item := card.item
+    match choice_landing:
+        Landing.GEAR, Landing.AMMO:
+            var to := loadout.gear_target() if choice_landing == Landing.GEAR else loadout.ammo_target(item)
+            await _fly_to_loadout(item, card.icon_center(), to)
+        Landing.SCRAP:
+            card.play_scrapped()
+            FTRewardSfx.play(self, &"scrap")
+            await get_tree().create_timer(0.2).timeout
+            loadout.land_ammo(item, -1)
+            loadout.show_caption("-1 %s ROUND" % item.display_name.to_upper(), Color8(232, 68, 68))
+            await get_tree().create_timer(0.2).timeout
+        _:
+            await get_tree().create_timer(0.3).timeout
+    _finish_choice(item)
+
+func _skip() -> void:
+    if reward_phase != &"pick":
+        return
+    reward_phase = &""
+    _dismiss_others(null)
+    FTRewardSfx.play(self, &"whoosh")
+    await get_tree().create_timer(0.3).timeout
+    _finish_choice(null)
+
+func _dismiss_others(kept: FTRewardCard) -> void:
+    var delay := 0.0
+    for card in cards:
+        if card != kept:
+            card.play_dismissed(delay)
+            delay += 0.04
+    var skip := choice_cards.get_node_or_null("Skip")
+    if skip:
+        skip.disabled = true
+        create_tween().tween_property(skip, "modulate:a", 0.0, 0.1)
+
+func _finish_choice(item: Resource) -> void:
+    choice_cards.visible = false
+    choice_made.emit(item)
+
+# The picked item's icon arcs from the card into the loadout, trailing
+# sparkles, and lands with a pop.
+func _fly_to_loadout(item: Resource, from: Vector2, to: Vector2) -> void:
     var icon := _make_item_icon(item)
     icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    icon.position = Vector2(12, 18)
     icon.scale = Vector2(1.5, 1.5)
-    card.add_child(icon)
-    var name_label := Label.new()
-    name_label.text = "%d  %s%s" % [number, item.display_name.to_upper(), suffix]
-    name_label.add_theme_font_size_override("font_size", 16)
-    name_label.position = Vector2(60, 4)
-    card.add_child(name_label)
-    var rarity_label := Label.new()
-    rarity_label.text = FTGear.Rarity.keys()[item.rarity]
-    rarity_label.add_theme_font_size_override("font_size", 8)
-    rarity_label.add_theme_color_override("font_color", RARITY_COLORS[item.rarity])
-    rarity_label.position = Vector2(60, 22)
-    card.add_child(rarity_label)
-    var description_label := Label.new()
-    description_label.text = item.description
-    description_label.add_theme_font_size_override("font_size", 8)
-    description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    description_label.position = Vector2(60, 36)
-    description_label.size = Vector2(232, 32)
-    card.add_child(description_label)
-    card.pressed.connect(_choose.bind(item))
-    return card
+    fx_layer.add_child(icon)
+    var color: Color = RARITY_COLORS[item.rarity]
+    var bend := (from + to) / 2.0 + Vector2(randf_range(-60.0, 60.0), -90.0)
+    var step := 0
+    var move := func(t: float):
+        var p := from.lerp(bend, t).lerp(bend.lerp(to, t), t)
+        icon.position = (p - GEAR_ICON_SIZE / 2.0).round()
+        step += 1
+        if step % 2 == 0:
+            FTRewardBurst.spawn(fx_layer, p, [color, Color.WHITE], 2, Vector2(0, 25), 0.3, Vector2.DOWN, TAU, 2.0, 0.0)
+    move.call(0.0)
+    FTRewardSfx.play(self, &"whoosh", 1.4, -12.0)
+    var tween := create_tween().set_parallel()
+    tween.tween_method(move, 0.0, 1.0, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    tween.tween_property(icon, "scale", Vector2.ONE, 0.45)
+    await tween.finished
+    icon.queue_free()
+    FTRewardSfx.play(self, &"pickup")
+    FTRewardBurst.spawn(fx_layer, to, [color, Color.WHITE, RARITY_COLORS[FTGear.Rarity.RARE]], 18, Vector2(50, 140), 0.5)
+    if item is FTGear:
+        loadout.land_gear(item)
+        loadout.show_caption("GOT %s" % item.display_name.to_upper(), color)
+    else:
+        loadout.land_ammo(item, 1)
+        loadout.show_caption("+1 %s ROUND" % item.display_name.to_upper(), color)
+    await get_tree().create_timer(0.25).timeout
 
-func _choose(item: Resource) -> void:
-    if not choice_panel.visible:
+# Coins burst out of the cache and home in on the wallet one by one; each
+# one counts the wallet up.
+func _spill_coins(pay: int, from: Vector2) -> void:
+    if pay <= 0:
         return
-    choice_panel.visible = false
-    choice_made.emit(item)
+    var count := clampi(pay / 2, 5, 14)
+    for i in count:
+        var value := pay / count + (1 if i < pay % count else 0)
+        _fly_coin(from, value, i * 0.05, i)
+
+func _fly_coin(from: Vector2, value: int, delay: float, index: int) -> void:
+    var coin := Control.new()
+    coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    coin.draw.connect(func():
+        coin.draw_rect(Rect2(-3, -4, 6, 8), Color8(37, 19, 26))
+        coin.draw_rect(Rect2(-4, -3, 8, 6), Color8(37, 19, 26))
+        coin.draw_rect(Rect2(-2, -3, 4, 6), Color8(255, 213, 105))
+        coin.draw_rect(Rect2(-3, -2, 6, 4), Color8(255, 213, 105))
+        coin.draw_rect(Rect2(-1, -2, 1, 4), Color8(209, 133, 30)))
+    coin.position = from
+    fx_layer.add_child(coin)
+    var to := loadout.wallet_target()
+    var bend := from + Vector2(randf_range(-110.0, 110.0), randf_range(-150.0, -60.0))
+    var move := func(t: float):
+        coin.position = from.lerp(bend, t).lerp(bend.lerp(to, t), t).round()
+        coin.scale.x = 0.5 if int(t * 12.0) % 3 == 1 else 1.0  # spinning
+    var tween := create_tween()
+    tween.tween_interval(delay)
+    tween.tween_method(move, 0.0, 1.0, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    await tween.finished
+    coin.queue_free()
+    loadout.add_money(value)
+    FTRewardSfx.play(self, &"coin", 1.0 + index * 0.03, -13.0)
+    FTRewardBurst.spawn(fx_layer, to, [Color8(255, 213, 105), Color.WHITE], 4, Vector2(30, 80), 0.3)
+
+func _screen_flash(color: Color, alpha: float, seconds: float) -> void:
+    var flash := ColorRect.new()
+    flash.color = Color(color, alpha)
+    flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+    fx_layer.add_child(flash)
+    var tween := create_tween()
+    tween.tween_property(flash, "modulate:a", 0.0, seconds)
+    tween.tween_callback(flash.queue_free)
 
 func _unhandled_input(event: InputEvent) -> void:
     if not choice_panel.visible or not (event is InputEventKey and event.pressed and not event.echo):
         return
-    var buttons := choice_cards.get_children().filter(func(c): return c is Button)
-    var target: Button = null
-    if event.physical_keycode == KEY_S:
-        target = choice_cards.get_node_or_null("Skip")
-    else:
-        var index: int = event.physical_keycode - KEY_1
-        var cards := buttons.filter(func(b): return b.name != "Skip")
-        if index >= 0 and index < cards.size():
-            target = cards[index]
-    if target and not target.disabled:
-        get_viewport().set_input_as_handled()
-        target.pressed.emit()
+    var key: int = event.physical_keycode
+    var shoot_key := key == KEY_ENTER or key == KEY_KP_ENTER or (key >= KEY_1 and key <= KEY_9)
+    match reward_phase:
+        &"cache":
+            if shoot_key:
+                get_viewport().set_input_as_handled()
+                _reward_shot(cache.global_position + cache.size / 2.0 + Vector2(randf_range(-20, 20), randf_range(-10, 10)), true)
+        &"spin":
+            if shoot_key or key == KEY_S:
+                get_viewport().set_input_as_handled()
+                _fast_forward_reels()
+        &"pick":
+            if key == KEY_S and choice_cards.get_node_or_null("Skip"):
+                get_viewport().set_input_as_handled()
+                _skip()
+            elif key >= KEY_1 and key - KEY_1 < cards.size():
+                get_viewport().set_input_as_handled()
+                var card: FTRewardCard = cards[key - KEY_1]
+                _pick(card, card.icon_center())
+
 
 ## Shows a gear's or round's name and description under the gear row for a moment.
 func show_gear_info(gear: Resource, header := "") -> void:
