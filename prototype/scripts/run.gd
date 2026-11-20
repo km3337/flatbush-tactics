@@ -289,11 +289,14 @@ func add_gear(template: FTGear, source := FTGear.Source.EVENT) -> FTGear:
 ## each weighted by rarity. Fewer (or none) when the pool runs low. These are
 ## the shared templates: pass the chosen one to add_gear.
 func roll_gear_choices(source: FTGear.Source, count := 3) -> Array[FTGear]:
-	var candidates := GEAR_POOL.gear.filter(func(g: FTGear):
-		return g.sources & source and not has_gear(g.id))
 	var picks: Array[FTGear] = []
-	picks.assign(_weighted_picks(candidates, count))
+	picks.assign(_weighted_picks(gear_candidates(source), count))
 	return picks
+
+## Every gear `source` could still give: in its pool and not owned yet.
+func gear_candidates(source: FTGear.Source) -> Array:
+	return GEAR_POOL.gear.filter(func(g: FTGear):
+		return g.sources & source and not has_gear(g.id))
 
 # Draws up to `count` items from `candidates` (consumed) without repeats,
 # weighted by each item's `rarity`.
